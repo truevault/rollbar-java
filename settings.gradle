@@ -1,0 +1,3 @@
+rootProject.name = 'rollbar-java'
+
+include 'rollbar', 'rollbar-payload', 'rollbar-sender', 'rollbar-testing', 'rollbar-utilities'

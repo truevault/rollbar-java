@@ -1,7 +1,6 @@
 ## Overview
 
-`java-rollbar` is a set of maven modules that allows reporting issues to
-Rollbar in anything that can use Java.
+This library allows reporting issues to Rollbar in anything that can use Java.
 
 It's still under development, and many of the design decisions may still
 be altered. If you have an opinion voice it in the issues!
@@ -22,21 +21,23 @@ install and start recording errors.
 
 ## Installing
 
-You can, of course, build it yourself and depend on the .jar manually,
-however, the modules are up on maven central and can be installed in
-most tool chains pretty trivially.
+If you want to work on the code, you can build it yourself with `./gradlew build`.
+
+If you want to use the code in your project, add it as a dependency. Released
+artifacts are hosted on JCenter.
 
 ### Maven
 
-All these can be installed as Maven projects. Simply add the
-dependency to your pom file:
+Add [JCenter](https://bintray.com/bintray/jcenter) as a repository to your Maven project by following that link and clicking "Set me up" in the top right.
+
+Add the dependency to your pom file:
 
 ```xml
 <dependencies>
 <dependency>
-  <groupId>com.rollbar</groupId>
+  <groupId>com.truevault.rollbar</groupId>
    <artifactId>rollbar</artifactId>
-   <version>0.5.2</version>
+   <version>1.0.0</version>
 </dependency>
 </dependencies>
 ```
@@ -44,7 +45,16 @@ dependency to your pom file:
 ### Gradle
 
 ```groovy
-compile('com.rollbar:rollbar:0.5.2')
+
+repositories {
+  jcenter()
+}
+
+...
+
+dependencies {
+  compile('com.truevault.rollbar:rollbar:1.0.0')
+}
 ```
 
 ## Usage

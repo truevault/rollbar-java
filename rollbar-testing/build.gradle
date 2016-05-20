@@ -1,0 +1,4 @@
+dependencies {
+  compile "junit:junit:$deps.junit"
+  compile project(':rollbar-utilities')
+}
