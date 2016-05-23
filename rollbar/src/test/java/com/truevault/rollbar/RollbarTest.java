@@ -1,0 +1,21 @@
+package com.truevault.rollbar;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
+public class RollbarTest {
+
+    @Test
+    public void itDoesNotThrowAnExceptionWhenConfiguringWithJustAccessTokenAndEnvironment() {
+        Rollbar rollbar = new Rollbar("some-access-token", "some-environment");
+        assertEquals("some-access-token", rollbar.getAccessToken());
+        assertEquals("some-environment", rollbar.getEnvironment());
+    }
+
+    @Test
+    public void itDoesNotThrowANullPointerExceptionWhenLoggingAnException() {
+        Rollbar rollbar = new Rollbar("some-access-token", "some-environment");
+        rollbar.log(new Exception("some exception"));
+    }
+}

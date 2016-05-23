@@ -10,7 +10,7 @@ Installation is through Maven:
 
 ```xml
 <dependency>
-    <groupId>com.rollbar</groupId>
+    <groupId>com.truevault.rollbar</groupId>
     <artifactId>rollbar</artifactId>
 </dependency>
 ```
@@ -61,7 +61,7 @@ You might configure your bean with something like this:
 package com.yourcompany.product;
 
 import org.springframework.beans.factory.FactoryBean;
-import com.rollbar.Rollbar;
+import com.truevault.rollbar.Rollbar;
 
 public class RollbarBean implements FactoryBean<Rollbar> {
 	private Rollbar rollbar = new Rollbar("YOUR_ACCESS_TOKEN_HERE", "production");
