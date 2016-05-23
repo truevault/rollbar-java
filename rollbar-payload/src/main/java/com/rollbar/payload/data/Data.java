@@ -1,20 +1,21 @@
 package com.rollbar.payload.data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rollbar.payload.data.body.Body;
 import com.rollbar.utilities.ArgumentNullException;
 import com.rollbar.utilities.InvalidLengthException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.Validate;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 
 /**
  * Represents the actual data being posted to Rollbar
  */
-public class Data implements JsonSerializable {
+public class Data {
     private final String environment;
     private final Body body;
     private final Level level;
@@ -102,6 +103,7 @@ public class Data implements JsonSerializable {
     /**
      * @return string representing the current environment (e.g.: production, debug, test)
      */
+    @JsonProperty("environment")
     public String environment() {
         return this.environment;
     }
@@ -120,6 +122,8 @@ public class Data implements JsonSerializable {
     /**
      * @return not nullable, the actual data being sent to rollbar (not metadata, about the request, server, etc.)
      */
+    @JsonProperty("body")
+    @Nonnull
     public Body body() {
         return this.body;
     }
@@ -137,6 +141,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the rollbar error level
      */
+    @JsonProperty("level")
     public Level level() {
         return this.level;
     }
@@ -153,6 +158,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the moment the bug happened, visible in ui as client_timestamp
      */
+    @JsonProperty("timestamp")
     public Date timestamp() {
         return this.timestamp == null ? null : new Date(this.timestamp * 1000);
     }
@@ -169,6 +175,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the currently running version of the code
      */
+    @JsonProperty("code_version")
     public String codeVersion() {
         return this.codeVersion;
     }
@@ -185,6 +192,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the platform running (most likely JVM and a version)
      */
+    @JsonProperty("platform")
     public String platform() {
         return this.platform;
     }
@@ -201,6 +209,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the language running (most likely java, but any JVM language might be here)
      */
+    @JsonProperty("language")
     public String language() {
         return this.language;
     }
@@ -217,6 +226,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the framework being run (e.g. Play, Spring, etc)
      */
+    @JsonProperty("framework")
     public String framework() {
         return this.framework;
     }
@@ -233,6 +243,7 @@ public class Data implements JsonSerializable {
     /**
      * @return custom identifier to help find where the error came from, Controller class name, for instance.
      */
+    @JsonProperty("context")
     public String context() {
         return this.context;
     }
@@ -249,6 +260,7 @@ public class Data implements JsonSerializable {
     /**
      * @return data about the Http Request that caused this, if applicable
      */
+    @JsonProperty("request")
     public Request request() {
         return this.request;
     }
@@ -265,6 +277,7 @@ public class Data implements JsonSerializable {
     /**
      * @return data about the user that experienced the error, if possible
      */
+    @JsonProperty("person")
     public Person person() {
         return this.person;
     }
@@ -281,6 +294,7 @@ public class Data implements JsonSerializable {
     /**
      * @return data about the machine on which the error occurred
      */
+    @JsonProperty("server")
     public Server server() {
         return this.server;
     }
@@ -297,6 +311,7 @@ public class Data implements JsonSerializable {
     /**
      * @return custom data that will aid in debugging the error
      */
+    @JsonProperty("custom")
     public Map<String, Object> custom() {
         return custom == null ? null : new LinkedHashMap<String, Object>(this.custom);
     }
@@ -313,6 +328,7 @@ public class Data implements JsonSerializable {
     /**
      * @return override the default and custom grouping with a string, if over 255 characters will be hashed
      */
+    @JsonProperty("fingerprint")
     public String fingerprint() {
         return this.fingerprint;
     }
@@ -329,6 +345,7 @@ public class Data implements JsonSerializable {
     /**
      * @return the title, max length 255 characters, overrides the default and custom ones set by rollbar
      */
+    @JsonProperty("title")
     public String title() {
         return this.title;
     }
@@ -346,6 +363,7 @@ public class Data implements JsonSerializable {
     /**
      * @return override the error UUID, unique to each project, used to deduplicate occurrences
      */
+    @JsonProperty("uuid")
     public UUID uuid() {
         if (this.uuid == null) return null;
         // Thanks to http://stackoverflow.com/a/18987428/456188
@@ -367,6 +385,7 @@ public class Data implements JsonSerializable {
     /**
      * @return information about this notifier, esp. if creating a framework specific notifier
      */
+    @JsonProperty("notifier")
     public Notifier notifier() {
         return this.notifier;
     }
@@ -380,26 +399,4 @@ public class Data implements JsonSerializable {
         return new Data(environment, body, level, timestamp, codeVersion, platform, language, framework, context, request, person, server, custom, fingerprint, title, uuid, notifier);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("environment", environment());
-        obj.put("body", body());
-
-        if (level != null) obj.put("level", level().asJson());
-        if (timestamp != null) obj.put("timestamp", timestamp);
-        if (codeVersion != null) obj.put("code_version", codeVersion());
-        if (platform != null) obj.put("platform", platform());
-        if (language != null) obj.put("language", language());
-        if (framework != null) obj.put("framework", framework());
-        if (context != null) obj.put("context", context());
-        if (request != null) obj.put("request", request());
-        if (person != null) obj.put("person", person());
-        if (server != null) obj.put("server", server());
-        if (custom != null) obj.put("custom", custom());
-        if (fingerprint != null) obj.put("fingerprint", fingerprint());
-        if (title != null) obj.put("title", title());
-        if (uuid != null) obj.put("uuid", uuid);
-        if (notifier != null) obj.put("notifier", notifier());
-        return obj;
-    }
 }

@@ -1,7 +1,7 @@
 package com.rollbar.payload.data.body;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.StringUtils;
 import com.rollbar.utilities.Validate;
 
@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * A container for the actual error(s), message, or crash report that caused this error.
  */
-public class Body implements JsonSerializable {
+public class Body {
     /**
      * Create a Body from an error. If {@link Throwable#getCause()} isn't null will return a Trace Chain,
      * otherwise returns a Trace
@@ -157,6 +157,7 @@ public class Body implements JsonSerializable {
         return null;
     }
 
+    @JsonValue
     public Map<String, Object> asJson() {
         Map<String, Object> obj = new LinkedHashMap<String, Object>();
         obj.put(key(), contents());

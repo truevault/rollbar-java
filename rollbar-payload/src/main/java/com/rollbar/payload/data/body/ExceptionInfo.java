@@ -1,16 +1,13 @@
 package com.rollbar.payload.data.body;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.Validate;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Represents *non-stacktrace* information about an exception, like class, description, and message.
  */
-public class ExceptionInfo implements JsonSerializable {
+public class ExceptionInfo {
     /**
      * Create an exception info from a throwable.
      * @param error the throwable
@@ -65,6 +62,7 @@ public class ExceptionInfo implements JsonSerializable {
     /**
      * @return the name of the exception class
      */
+    @JsonProperty("class")
     public String className() {
         return this.className;
     }
@@ -82,6 +80,7 @@ public class ExceptionInfo implements JsonSerializable {
     /**
      * @return the exception message
      */
+    @JsonProperty("message")
     public String message() {
         return this.message;
     }
@@ -98,6 +97,7 @@ public class ExceptionInfo implements JsonSerializable {
     /**
      * @return a human readable description of the exception
      */
+    @JsonProperty("description")
     public String description() {
         return this.description;
     }
@@ -111,11 +111,4 @@ public class ExceptionInfo implements JsonSerializable {
         return new ExceptionInfo(className, message, description);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("class", className());
-        obj.put("message", message());
-        obj.put("description", description());
-        return obj;
-    }
 }

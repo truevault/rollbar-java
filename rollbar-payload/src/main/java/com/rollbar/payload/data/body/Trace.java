@@ -1,16 +1,13 @@
 package com.rollbar.payload.data.body;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.Validate;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Represent a Stack Trace to send to Rollbar
  */
-public class Trace implements BodyContents, JsonSerializable {
+public class Trace implements BodyContents {
     /**
      * Create a stack trace from a throwable
      * @param error the Throwable to create a stack trace from
@@ -56,6 +53,7 @@ public class Trace implements BodyContents, JsonSerializable {
     /**
      * @return a copy of the frames
      */
+    @JsonProperty("frames")
     public Frame[] frames() {
         return this.frames.clone();
     }
@@ -73,6 +71,7 @@ public class Trace implements BodyContents, JsonSerializable {
     /**
      * @return the exception info
      */
+    @JsonProperty("exception")
     public ExceptionInfo exception() {
         return this.exception;
     }
@@ -87,10 +86,4 @@ public class Trace implements BodyContents, JsonSerializable {
         return new Trace(frames, exception);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("frames", frames());
-        obj.put("exception", exception());
-        return obj;
-    }
 }

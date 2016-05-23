@@ -1,107 +1,90 @@
 package com.rollbar.payload;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rollbar.payload.data.Data;
 import com.rollbar.payload.data.Notifier;
 import com.rollbar.payload.data.body.Body;
 import com.rollbar.payload.data.body.Message;
-import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.InvalidLengthException;
-
-import com.rollbar.utilities.RollbarSerializer;
+import java.io.IOException;
+import java.util.LinkedHashMap;
 import org.junit.Test;
 
-import java.util.LinkedHashMap;
-
-import static org.junit.Assert.*;
+import static com.rollbar.utilities.Json.getObjectReader;
+import static com.rollbar.utilities.Json.getObjectWriter;
+import static org.junit.Assert.assertEquals;
 
 public class RollbarSerializerTest {
     private static final String accessToken = "e3a49f757f86465097c000cb2de9de08";
     private static final String environment = "testing";
     private static final String testMessage = "Test Serialize";
-    private final static String basicExpected = "{\"access_token\":\"" + accessToken + "\",\"data\":{\"environment\":\"" + environment + "\",\"body\":{\"message\":{\"body\":\"" + testMessage + "\",\"extra\":\"has-extra\"}},\"notifier\":{\"name\":\"rollbar\"}}}";
+    private final static String basicExpected =
+            "{\"access_token\":\"" + accessToken + "\",\"data\":{\"environment\":\"" + environment +
+                    "\",\"body\":{\"message\":{\"body\":\"" + testMessage +
+                    "\",\"extra\":\"has-extra\"}},\"notifier\":{\"name\":\"rollbar\"}}}";
 
     @Test
-    public void TestBasicSerialize() {
-        try {
-            final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
-            members.put("extra", "has-extra");
-            final Body body = Body.fromString(testMessage, members);
-            final Data data = new Data(environment, body)
-                    .notifier(new Notifier());
+    public void TestBasicSerialize() throws JsonProcessingException {
+        final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
+        members.put("extra", "has-extra");
+        final Body body = Body.fromString(testMessage, members);
+        final Data data = new Data(environment, body)
+                .notifier(new Notifier());
 
-            String json = new RollbarSerializer(false).serialize(new Payload(accessToken, data));
-            assertEquals(basicExpected, json);
-        } catch (ArgumentNullException e) {
-            fail("Message isn't null");
-        } catch (InvalidLengthException e) {
-            fail("Doesn't apply here");
-        }
+        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        assertEquals(basicExpected, json);
     }
 
     @Test
-    public void TestExceptionSerialize() {
-        try {
-            final Body body = Body.fromError(getError());
-            final Data data = new Data(environment, body);
-            String json = new RollbarSerializer(true).serialize(new Payload(accessToken, data));
-            JsonObject parsed = (JsonObject) new JsonParser().parse(json);
-            assertEquals(accessToken, parsed.get("access_token").getAsString());
-            assertEquals(environment, parsed.getAsJsonObject("data").get("environment").getAsString());
-            assertEquals("Exception", parsed.getAsJsonObject("data").getAsJsonObject("body").getAsJsonObject("trace").getAsJsonObject("exception").get("class").getAsString());
-            assertEquals("Non Chained Exception", parsed.getAsJsonObject("data").getAsJsonObject("body").getAsJsonObject("trace").getAsJsonObject("exception").get("message").getAsString());
+    public void TestExceptionSerialize() throws IOException {
+        final Body body = Body.fromError(getError());
+        final Data data = new Data(environment, body);
+        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
+        assertEquals(accessToken, parsed.get("access_token").textValue());
+        assertEquals(environment, parsed.get("data").get("environment").textValue());
+        assertEquals("Exception", parsed.get("data").get("body").get("trace")
+                .get("exception").get("class").textValue());
+        assertEquals("Non Chained Exception",
+                parsed.get("data").get("body").get("trace")
+                        .get("exception").get("message").textValue());
 
-            final JsonArray frames = parsed.getAsJsonObject("data").getAsJsonObject("body").getAsJsonObject("trace").getAsJsonArray("frames");
-            final JsonObject lastFrame = frames.get(frames.size() - 1).getAsJsonObject();
-            final JsonObject secondToLastFrame = frames.get(frames.size() - 2).getAsJsonObject();
+        final JsonNode frames = parsed.get("data").get("body").get("trace")
+                .get("frames");
+        final JsonNode lastFrame = frames.get(frames.size() - 1);
+        final JsonNode secondToLastFrame = frames.get(frames.size() - 2);
 
-            assertEquals("com.rollbar.payload.RollbarSerializerTest.java", lastFrame.get("filename").getAsString());
-            assertEquals("com.rollbar.payload.RollbarSerializerTest.java", secondToLastFrame.get("filename").getAsString());
-            assertEquals("throwException", lastFrame.get("method").getAsString());
-            assertEquals("getError", secondToLastFrame.get("method").getAsString());
-        } catch (ArgumentNullException e) {
-            fail("getError always returns an error");
-        } catch (InvalidLengthException e) {
-            fail("Doesn't apply here");
-        }
+        assertEquals("com.rollbar.payload.RollbarSerializerTest.java", lastFrame.get("filename").textValue());
+        assertEquals("com.rollbar.payload.RollbarSerializerTest.java",
+                secondToLastFrame.get("filename").textValue());
+        assertEquals("throwException", lastFrame.get("method").textValue());
+        assertEquals("getError", secondToLastFrame.get("method").textValue());
     }
 
     @Test
-    public void TestChainedExceptionSerialize() {
-        try {
-            final Body body = Body.fromError(getChainedError());
-            final Data data = new Data(environment, body);
-            String json = new RollbarSerializer().serialize(new Payload(accessToken, data));
-            JsonObject parsed = (JsonObject) new JsonParser().parse(json);
-            assertEquals(accessToken, parsed.get("access_token").getAsString());
-            assertEquals(environment, parsed.getAsJsonObject("data").get("environment").getAsString());
-            final JsonObject b = parsed.getAsJsonObject("data").getAsJsonObject("body");
-            assertEquals(2, b.getAsJsonArray("trace_chain").size());
-        } catch (ArgumentNullException e) {
-            fail("getError always returns an error");
-        } catch (InvalidLengthException e) {
-            fail("Doesn't apply here");
-        }
+    public void TestChainedExceptionSerialize() throws IOException {
+        final Body body = Body.fromError(getChainedError());
+        final Data data = new Data(environment, body);
+        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
+        assertEquals(accessToken, parsed.get("access_token").textValue());
+        assertEquals(environment, parsed.get("data").get("environment").textValue());
+        final JsonNode b = parsed.get("data").get("body");
+        assertEquals(2, b.get("trace_chain").size());
     }
 
     @Test
-    public void TestExtensibleSerialize() {
-        try {
-            final Message msg = new Message("Message").put("extra", "value");
-            final Body body = new Body(msg);
-            final Data data = new Data(environment, body);
-            String json = new RollbarSerializer(false).serialize(new Payload(accessToken, data));
-            JsonObject parsed = (JsonObject) new JsonParser().parse(json);
-            final String b = parsed.getAsJsonObject("data").getAsJsonObject("body").getAsJsonObject("message").get("extra").getAsString();
-            assertEquals("value", b);
-        } catch (ArgumentNullException e) {
-            fail("Doesn't apply here");
-        } catch (InvalidLengthException e) {
-            fail("Doesn't apply here");
-        }
+    public void TestExtensibleSerialize() throws IOException {
+        final Message msg = new Message("Message").put("extra", "value");
+        final Body body = new Body(msg);
+        final Data data = new Data(environment, body);
+        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        JsonNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
+        final String b =
+                parsed.get("data").get("body").get("message").get("extra")
+                        .textValue();
+        assertEquals("value", b);
     }
 
     public Throwable getError() {

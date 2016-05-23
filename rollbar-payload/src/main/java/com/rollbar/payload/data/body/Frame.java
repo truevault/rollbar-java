@@ -1,7 +1,7 @@
 package com.rollbar.payload.data.body;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.Validate;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Represents a single frame from a stack trace
  */
-public class Frame implements JsonSerializable {
+public class Frame {
     /**
      * Get an array of frames from an error
      * @param error the error
@@ -89,6 +89,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the name of the file in which the error occurred
     */
+    @JsonProperty("filename")
     public String filename() {
         return filename;
     }
@@ -106,6 +107,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the line number on which the error occurred
     */
+    @JsonProperty("lineno")
     public Integer lineNumber() {
         return lineNumber;
     }
@@ -122,6 +124,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the column number (if available in your language) on which the error occurred
     */
+    @JsonProperty("colno")
     public Integer columnNumber() {
         return columnNumber;
     }
@@ -138,6 +141,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the method in which the error occurred
     */
+    @JsonProperty("method")
     public String method() {
         return method;
     }
@@ -154,6 +158,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the line of code that triggered the error
     */
+    @JsonProperty("code")
     public String code() {
         return code;
     }
@@ -170,6 +175,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return extra context around the line of code that triggered the error
     */
+    @JsonProperty("context")
     public CodeContext context() {
         return context;
     }
@@ -186,6 +192,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the arguments to the method from the stack frame (if available in your language)
     */
+    @JsonProperty("args")
     public Object[] args() {
         return args == null ? null : args.clone();
     }
@@ -202,6 +209,7 @@ public class Frame implements JsonSerializable {
     /**
     * @return the keyword arguments to the method from the stack frame (if available in your language)
     */
+    @JsonProperty("kwargs")
     public Map<String, Object> keywordArgs() {
         return keywordArgs == null ? null : new LinkedHashMap<String, Object>(keywordArgs);
     }
@@ -215,16 +223,4 @@ public class Frame implements JsonSerializable {
         return new Frame(filename, lineNumber, columnNumber, method, code, context, args, keywordArgs);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("filename", filename());
-        obj.put("lineno", lineNumber());
-        obj.put("colno", columnNumber());
-        obj.put("method", method());
-        obj.put("code", code());
-        obj.put("context", context());
-        obj.put("args", args());
-        obj.put("kwargs", keywordArgs());
-        return obj;
-    }
 }

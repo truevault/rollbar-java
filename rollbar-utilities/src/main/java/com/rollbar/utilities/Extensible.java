@@ -1,6 +1,8 @@
 package com.rollbar.utilities;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.*;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Base class for classes that can be extended with arbitrary metadata (as per the
@@ -8,7 +10,8 @@ import java.util.*;
  * This class, unlike the rest of the classes is mutable. Extra caution is therefore warranted.
  * @param <T> The extensible type itself.
  */
-public abstract class Extensible<T extends Extensible<T>> implements JsonSerializable {
+@NotThreadSafe
+public abstract class Extensible<T extends Extensible<T>> {
     /**
      * Constructor
      * @param members the LinkedHashMap of all members already in this object
@@ -112,6 +115,7 @@ public abstract class Extensible<T extends Extensible<T>> implements JsonSeriali
         return new TreeMap<String, Object>(members);
     }
 
+    @JsonValue
     public Map<String, Object> asJson() {
         LinkedHashMap<String, Object> json = new LinkedHashMap<String, Object>();
         for(String key : knownMembers()) {

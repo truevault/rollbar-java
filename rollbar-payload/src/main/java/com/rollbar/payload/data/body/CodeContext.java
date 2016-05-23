@@ -1,14 +1,11 @@
 package com.rollbar.payload.data.body;
 
-import com.rollbar.utilities.JsonSerializable;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents the context around the code where the error occurred (lines before, 'pre', and after, 'post')
  */
-public class CodeContext implements JsonSerializable {
+public class CodeContext {
     private final String[] pre;
     private final String[] post;
 
@@ -32,6 +29,7 @@ public class CodeContext implements JsonSerializable {
     /**
      * @return the lines of code before the one that triggered the error
      */
+    @JsonProperty("pre")
     public String[] pre() {
         return pre == null ? null : pre.clone();
     }
@@ -48,6 +46,7 @@ public class CodeContext implements JsonSerializable {
     /**
      * @return the lines of code after the one that triggered the error
      */
+    @JsonProperty("post")
     public String[] post() {
         return post == null ? null : post.clone();
     }
@@ -61,10 +60,4 @@ public class CodeContext implements JsonSerializable {
         return new CodeContext(pre, post);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("pre", pre());
-        obj.put("post", post());
-        return obj;
-    }
 }

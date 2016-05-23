@@ -1,8 +1,8 @@
 package com.rollbar.payload.data.body;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.rollbar.utilities.ArgumentNullException;
 import com.rollbar.utilities.InvalidLengthException;
-import com.rollbar.utilities.JsonSerializable;
 import com.rollbar.utilities.Validate;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Represents a chain of errors (typically from Exceptions with {@link Exception#getCause()} returning some value)
  */
-public class TraceChain implements BodyContents, JsonSerializable {
+public class TraceChain implements BodyContents {
     /**
      * Generate a TraceChain from a throwable with multiple causes
      * @param error the error to record
@@ -72,6 +72,7 @@ public class TraceChain implements BodyContents, JsonSerializable {
         return new TraceChain(traces);
     }
 
+    @JsonValue
     public Trace[] asJson() {
         return traces();
     }

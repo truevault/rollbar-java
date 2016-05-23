@@ -1,5 +1,6 @@
 dependencies {
   compile project(':rollbar-utilities')
   testCompile project(':rollbar-testing')
-  testCompile "com.google.code.gson:gson:$deps.gson"
+
+  compile "com.fasterxml.jackson.core:jackson-annotations:$deps.jackson"
 }

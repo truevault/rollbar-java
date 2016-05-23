@@ -1,11 +1,19 @@
 package com.rollbar.sender;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rollbar.payload.Payload;
 import com.rollbar.utilities.ArgumentNullException;
+import com.rollbar.utilities.Json;
 import com.rollbar.utilities.Validate;
-
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,7 +59,7 @@ public class PayloadSender implements Sender {
      * @return the response from Rollbar {@link RollbarResponse}
      */
     public RollbarResponse send(Payload payload) {
-        HttpURLConnection connection = null;
+        HttpURLConnection connection;
         try {
             connection = getConnection();
         } catch (ConnectionFailedException e) {
@@ -60,9 +68,10 @@ public class PayloadSender implements Sender {
 
         final byte[] bytes;
         try {
-            bytes = payload.toJson().getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("Rollbar Requires UTF8 Encoding and your JVM does not support UTF8, please update your JVM");
+            bytes = Json.getObjectWriter().writeValueAsBytes(payload);
+        } catch (JsonProcessingException e) {
+            // TODO more expressive errors
+            return RollbarResponse.failure(RollbarResponseCode.ConnectionFailed, e.getMessage());
         }
 
         try {

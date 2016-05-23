@@ -1,11 +1,11 @@
 package com.rollbar.payload.data;
 
-import com.rollbar.utilities.JsonSerializable;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * The Level of a Rollbar Report.
  */
-public enum Level implements Comparable<Level>, JsonSerializable {
+public enum Level implements Comparable<Level> {
     /**
      * A critical error (must be fixed ASAP).
      */
@@ -52,6 +52,7 @@ public enum Level implements Comparable<Level>, JsonSerializable {
      * How to serialize this as Json.
      * @return the lower case string of the level
      */
+    @JsonValue
     public String asJson() {
         return jsonName;
     }

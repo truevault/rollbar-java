@@ -1,14 +1,11 @@
 package com.rollbar.payload.data;
 
-import com.rollbar.utilities.JsonSerializable;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Information about this notifier, or one based off of this
  */
-public class Notifier implements JsonSerializable {
+public class Notifier {
     public static final String defaultName = "rollbar";
     public static final String defaultVersion = Notifier.class.getPackage().getImplementationVersion();
 
@@ -36,6 +33,7 @@ public class Notifier implements JsonSerializable {
     /**
      * @return the name
      */
+    @JsonProperty("name")
     public String name() {
         return this.name;
     }
@@ -52,6 +50,7 @@ public class Notifier implements JsonSerializable {
     /**
      * @return the version of the notifier
      */
+    @JsonProperty("version")
     public String version() {
         return this.version;
     }
@@ -65,10 +64,4 @@ public class Notifier implements JsonSerializable {
         return new Notifier(name, version);
     }
 
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        if (name != null) obj.put("name", name());
-        if (version != null) obj.put("version", version());
-        return obj;
-    }
 }

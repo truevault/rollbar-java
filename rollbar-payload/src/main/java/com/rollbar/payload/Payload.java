@@ -1,23 +1,20 @@
 package com.rollbar.payload;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rollbar.payload.data.Data;
 import com.rollbar.payload.data.Level;
 import com.rollbar.payload.data.Notifier;
 import com.rollbar.payload.data.body.Body;
 import com.rollbar.utilities.ArgumentNullException;
-import com.rollbar.utilities.RollbarSerializer;
 import com.rollbar.utilities.Validate;
-import com.rollbar.utilities.JsonSerializable;
-
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Represents the payload to send to Rollbar. A successfully constructed Payload matches Rollbar's spec, and should be
  * successful when serialized and POSTed to the correct endpoint.
  */
-public final class Payload implements JsonSerializable {
+public final class Payload {
     /**
      * A shortcut factory for creating a payload
      * @param accessToken not nullable, the server_post access token to send this payload to
@@ -78,6 +75,7 @@ public final class Payload implements JsonSerializable {
     /**
      * @return the access token
      */
+    @JsonProperty("access_token")
     public String accessToken() {
         return accessToken;
     }
@@ -85,6 +83,7 @@ public final class Payload implements JsonSerializable {
     /**
      * @return the data
      */
+    @JsonProperty("data")
     public Data data() {
         return data;
     }
@@ -109,18 +108,4 @@ public final class Payload implements JsonSerializable {
         return new Payload(this.accessToken, data);
     }
 
-    /**
-     * Convert this object to JSON that can be sent to Rollbar
-     * @return the json representation of this object
-     */
-    public String toJson() {
-        return new RollbarSerializer().serialize(this);
-    }
-
-    public Map<String, Object> asJson() {
-        Map<String, Object> obj = new LinkedHashMap<String, Object>();
-        obj.put("access_token", accessToken());
-        obj.put("data", data());
-        return obj;
-    }
 }
