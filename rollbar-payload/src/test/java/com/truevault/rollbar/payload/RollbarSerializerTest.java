@@ -32,7 +32,7 @@ public class RollbarSerializerTest {
         final Data data = new Data(environment, body)
                 .notifier(new Notifier());
 
-        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         assertEquals(basicExpected, json);
     }
 
@@ -40,7 +40,7 @@ public class RollbarSerializerTest {
     public void TestExceptionSerialize() throws IOException {
         final Body body = Body.fromError(getError());
         final Data data = new Data(environment, body);
-        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
         assertEquals(environment, parsed.get("data").get("environment").textValue());
@@ -66,7 +66,7 @@ public class RollbarSerializerTest {
     public void TestChainedExceptionSerialize() throws IOException {
         final Body body = Body.fromError(getChainedError());
         final Data data = new Data(environment, body);
-        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
         assertEquals(environment, parsed.get("data").get("environment").textValue());
@@ -79,7 +79,7 @@ public class RollbarSerializerTest {
         final Message msg = new Message("Message").put("extra", "value");
         final Body body = new Body(msg);
         final Data data = new Data(environment, body);
-        String json = getObjectWriter().writeValueAsString(new Payload(accessToken, data));
+        String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         JsonNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         final String b =
                 parsed.get("data").get("body").get("message").get("extra")

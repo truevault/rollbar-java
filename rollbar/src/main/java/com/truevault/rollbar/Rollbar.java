@@ -1,6 +1,8 @@
 package com.truevault.rollbar;
 
-import com.truevault.rollbar.payload.Payload;
+import com.truevault.rollbar.http.HttpItemClient;
+import com.truevault.rollbar.http.RollbarResponse;
+import com.truevault.rollbar.payload.Item;
 import com.truevault.rollbar.payload.data.Data;
 import com.truevault.rollbar.payload.data.Level;
 import com.truevault.rollbar.payload.data.Notifier;
@@ -8,14 +10,13 @@ import com.truevault.rollbar.payload.data.Person;
 import com.truevault.rollbar.payload.data.Request;
 import com.truevault.rollbar.payload.data.Server;
 import com.truevault.rollbar.payload.data.body.Body;
-import com.truevault.rollbar.sender.PayloadSender;
-import com.truevault.rollbar.sender.RollbarResponseHandler;
-import com.truevault.rollbar.sender.Sender;
 import com.truevault.rollbar.utilities.ArgumentNullException;
 import com.truevault.rollbar.utilities.Validate;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 
 /**
  * The notifier itself. Anything that can be statically set should be set by passed in through the constructor.
@@ -36,29 +37,19 @@ public class Rollbar {
     private Server server;
     private Map<String, Object> custom;
     private Notifier notifier;
-    private RollbarResponseHandler responseHandler;
-    private PayloadFilter filter;
-    private PayloadTransform transform;
-    private Sender sender;
-
-    /**
-     * Construct a notifier defaults for everything including Sender.
-     * Caution: default sender is slow and blocking. Consider providing a Sender overload.
-     * @param accessToken not nullable, the access token to send payloads to
-     * @param environment not nullable, the environment to send payloads under
-     */
-    public Rollbar(String accessToken, String environment) {
-        this(accessToken, environment, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-    }
+    @Nullable
+    private ItemFilter filter;
+    private ItemTransform transform;
+    private HttpItemClient sender;
 
     /**
      * Construct notifier, defaults for everything but Sender.
      * @param accessToken not nullable, the access token to send payloads to
      * @param environment not nullable, the environment to send payloads under
-     * @param sender the sender to use. If null uses default: {@link PayloadSender}
+     * @param sender the sender to use.
      */
-    public Rollbar(String accessToken, String environment, Sender sender) {
-        this(accessToken, environment, sender, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    public Rollbar(String accessToken, String environment, HttpItemClient sender) {
+        this(accessToken, environment, sender, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -66,7 +57,7 @@ public class Rollbar {
      * value. If appropriate.
      * @param accessToken not nullable, the access token to send payloads to
      * @param environment not nullable, the environment to send payloads under
-     * @param sender the sender to use. If null uses default: {@link PayloadSender}
+     * @param sender the sender to use.
      * @param codeVersion the version of the code currently running. If code checked out on server: `git rev-parse HEAD`
      * @param platform the platform you're running. (JVM version, or similar).
      * @param language the main language you're running ("java" by default, override w/ "clojure", "scala" etc.).
@@ -77,19 +68,17 @@ public class Rollbar {
      * @param server info about this server. This can be statically set.
      * @param custom custom info to send with *every* error. Can be dynamically or statically set.
      * @param notifier information about this notifier. Default {@code new Notifier()} ({@link Notifier}.
-     * @param responseHandler what to do with the response. Use this to check for failures and handle some other way.
      * @param filter filter used to determine if you will send payload. Receives *transformed* payload.
      * @param transform alter payload before sending.
      */
-    public Rollbar(String accessToken, String environment, Sender sender, String codeVersion, String platform,
+    public Rollbar(String accessToken, String environment, HttpItemClient sender, String codeVersion, String platform,
                    String language, String framework, String context, Request request, Person person, Server server,
-                   Map<String, Object> custom, Notifier notifier, RollbarResponseHandler responseHandler,
-                   PayloadFilter filter, PayloadTransform transform) {
+                   Map<String, Object> custom, Notifier notifier, ItemFilter filter, ItemTransform transform) {
         Validate.isNotNullOrWhitespace(accessToken, "accessToken");
         Validate.isNotNullOrWhitespace(environment, "environment");
 
 
-        this.sender = sender == null ? new PayloadSender() : sender;
+        this.sender = sender;
         this.accessToken = accessToken;
         this.environment = environment;
         this.codeVersion = codeVersion;
@@ -101,7 +90,6 @@ public class Rollbar {
         this.person = person;
         this.server = server;
         this.notifier = notifier == null ? new Notifier() : notifier;
-        this.responseHandler = responseHandler;
         this.filter = filter;
         this.transform = transform;
 
@@ -135,48 +123,48 @@ public class Rollbar {
      * Record a critical error
      * @param error the error
      */
-    public void critical(Throwable error) {
-        log(error, null, null, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(Throwable error) {
+        return log(error, null, null, Level.CRITICAL);
     }
 
     /**
      * Record an error
      * @param error the error
      */
-    public void error(Throwable error) {
-        log(error, null, null, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(Throwable error) {
+        return log(error, null, null, Level.ERROR);
     }
 
     /**
      * Record an error as a warning
      * @param error the error
      */
-    public void warning(Throwable error) {
-        log(error, null, null, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(Throwable error) {
+        return log(error, null, null, Level.WARNING);
     }
 
     /**
      * Record an error as an info
      * @param error the error
      */
-    public void info(Throwable error) {
-        log(error, null, null, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(Throwable error) {
+        return log(error, null, null, Level.INFO);
     }
 
     /**
      * Record an error as debugging information
      * @param error the error
      */
-    public void debug(Throwable error) {
-        log(error, null, null, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(Throwable error) {
+        return log(error, null, null, Level.DEBUG);
     }
 
     /**
      * Log an error at the level returned by {@link Rollbar#level}
      * @param error the error
      */
-    public void log(Throwable error) {
-        log(error, null, null, null);
+    public CompletableFuture<RollbarResponse> log(Throwable error) {
+        return log(error, null, null, null);
     }
 
     /**
@@ -184,8 +172,8 @@ public class Rollbar {
      * @param error the error
      * @param level the level of the error
      */
-    public void log(Throwable error, Level level) {
-        log(error, null, null, level);
+    public CompletableFuture<RollbarResponse> log(Throwable error, Level level) {
+        return log(error, null, null, level);
     }
 
     /**
@@ -193,8 +181,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void critical(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, Level.CRITICAL);
     }
 
     /**
@@ -202,8 +190,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void error(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, Level.ERROR);
     }
 
     /**
@@ -211,8 +199,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void warning(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, Level.WARNING);
     }
 
     /**
@@ -220,8 +208,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void info(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, Level.INFO);
     }
 
     /**
@@ -229,8 +217,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void debug(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, Level.DEBUG);
     }
 
     /**
@@ -238,8 +226,8 @@ public class Rollbar {
      * @param error the error
      * @param custom the extra information
      */
-    public void log(Throwable error, Map<String, Object> custom) {
-        log(error, custom, null, null);
+    public CompletableFuture<RollbarResponse> log(Throwable error, Map<String, Object> custom) {
+        return log(error, custom, null, null);
     }
 
     /**
@@ -248,8 +236,8 @@ public class Rollbar {
      * @param custom the extra information
      * @param level the level
      */
-    public void log(Throwable error, Map<String, Object> custom, Level level) {
-        log(error, custom, null, level);
+    public CompletableFuture<RollbarResponse> log(Throwable error, Map<String, Object> custom, Level level) {
+        return log(error, custom, null, level);
     }
 
     /**
@@ -257,8 +245,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void critical(Throwable error, String description) {
-        log(error, null, description, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(Throwable error, String description) {
+        return log(error, null, description, Level.CRITICAL);
     }
 
     /**
@@ -266,8 +254,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void error(Throwable error, String description) {
-        log(error, null, description, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(Throwable error, String description) {
+        return log(error, null, description, Level.ERROR);
     }
 
     /**
@@ -275,8 +263,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void warning(Throwable error, String description) {
-        log(error, null, description, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(Throwable error, String description) {
+        return log(error, null, description, Level.WARNING);
     }
 
     /**
@@ -284,8 +272,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void info(Throwable error, String description) {
-        log(error, null, description, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(Throwable error, String description) {
+        return log(error, null, description, Level.INFO);
     }
 
     /**
@@ -293,8 +281,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void debug(Throwable error, String description) {
-        log(error, null, description, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(Throwable error, String description) {
+        return log(error, null, description, Level.DEBUG);
     }
 
     /**
@@ -302,8 +290,8 @@ public class Rollbar {
      * @param error the error
      * @param description human readable description of error
      */
-    public void log(Throwable error, String description) {
-        log(error, null, description, null);
+    public CompletableFuture<RollbarResponse> log(Throwable error, String description) {
+        return log(error, null, description, null);
     }
 
     /**
@@ -312,8 +300,8 @@ public class Rollbar {
      * @param description human readable description of error
      * @param level the level
      */
-    public void log(Throwable error, String description, Level level) {
-        log(error, null, description, level);
+    public CompletableFuture<RollbarResponse> log(Throwable error, String description, Level level) {
+        return log(error, null, description, level);
     }
 
     /**
@@ -322,8 +310,8 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void critical(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, Level.CRITICAL);
     }
 
     /**
@@ -332,8 +320,8 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void error(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, Level.ERROR);
     }
 
     /**
@@ -342,8 +330,8 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void warning(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, Level.WARNING);
     }
 
     /**
@@ -352,8 +340,8 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void info(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, Level.INFO);
     }
 
     /**
@@ -362,8 +350,8 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void debug(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, Level.DEBUG);
     }
 
     /**
@@ -373,56 +361,56 @@ public class Rollbar {
      * @param custom the custom data
      * @param description the human readable description of error
      */
-    public void log(Throwable error, Map<String, Object> custom, String description) {
-        log(error, custom, description, null);
+    public CompletableFuture<RollbarResponse> log(Throwable error, Map<String, Object> custom, String description) {
+        return log(error, custom, description, null);
     }
 
     /**
      * Record a critical message
      * @param message the message
      */
-    public void critical(String message) {
-        log(null, null, message, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(String message) {
+        return log(null, null, message, Level.CRITICAL);
     }
 
     /**
      * Record an error message
      * @param message the message
      */
-    public void error(String message) {
-        log(null, null, message, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(String message) {
+        return log(null, null, message, Level.ERROR);
     }
 
     /**
      * Record a warning message
      * @param message the message
      */
-    public void warning(String message) {
-        log(null, null, message, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(String message) {
+        return log(null, null, message, Level.WARNING);
     }
 
     /**
      * Record an informational message
      * @param message the message
      */
-    public void info(String message) {
-        log(null, null, message, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(String message) {
+        return log(null, null, message, Level.INFO);
     }
 
     /**
      * Record a debugging message
      * @param message the message
      */
-    public void debug(String message) {
-        log(null, null, message, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(String message) {
+        return log(null, null, message, Level.DEBUG);
     }
 
     /**
      * Record a debugging message at the level returned by {@link Rollbar#level} (WARNING unless level is overriden)
      * @param message the message
      */
-    public void log(String message) {
-        log(null, null, message, null);
+    public CompletableFuture<RollbarResponse> log(String message) {
+        return log(null, null, message, null);
     }
 
     /**
@@ -430,8 +418,8 @@ public class Rollbar {
      * @param message the message
      * @param level the level
      */
-    public void log(String message, Level level) {
-        log(null, null, message, level);
+    public CompletableFuture<RollbarResponse> log(String message, Level level) {
+        return log(null, null, message, level);
     }
 
     /**
@@ -439,8 +427,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void critical(String message, Map<String, Object> custom) {
-        log(null, custom, message, Level.CRITICAL);
+    public CompletableFuture<RollbarResponse> critical(String message, Map<String, Object> custom) {
+        return log(null, custom, message, Level.CRITICAL);
     }
 
     /**
@@ -448,8 +436,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void error(String message, Map<String, Object> custom) {
-        log(null, custom, message, Level.ERROR);
+    public CompletableFuture<RollbarResponse> error(String message, Map<String, Object> custom) {
+        return log(null, custom, message, Level.ERROR);
     }
 
     /**
@@ -457,8 +445,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void warning(String message, Map<String, Object> custom) {
-        log(null, custom, message, Level.WARNING);
+    public CompletableFuture<RollbarResponse> warning(String message, Map<String, Object> custom) {
+        return log(null, custom, message, Level.WARNING);
     }
 
     /**
@@ -466,8 +454,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void info(String message, Map<String, Object> custom) {
-        log(null, custom, message, Level.INFO);
+    public CompletableFuture<RollbarResponse> info(String message, Map<String, Object> custom) {
+        return log(null, custom, message, Level.INFO);
     }
 
     /**
@@ -475,8 +463,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void debug(String message, Map<String, Object> custom) {
-        log(null, custom, message, Level.DEBUG);
+    public CompletableFuture<RollbarResponse> debug(String message, Map<String, Object> custom) {
+        return log(null, custom, message, Level.DEBUG);
     }
 
     /**
@@ -485,8 +473,8 @@ public class Rollbar {
      * @param message the message
      * @param custom the extra information
      */
-    public void log(String message, Map<String, Object> custom) {
-        log(null, custom, message, null);
+    public CompletableFuture<RollbarResponse> log(String message, Map<String, Object> custom) {
+        return log(null, custom, message, null);
     }
 
     /**
@@ -495,8 +483,8 @@ public class Rollbar {
      * @param custom the extra information
      * @param level the level
      */
-    public void log(String message, Map<String, Object> custom, Level level) {
-        log(null, custom, message, level);
+    public CompletableFuture<RollbarResponse> log(String message, Map<String, Object> custom, Level level) {
+        return log(null, custom, message, level);
     }
 
     /**
@@ -510,12 +498,12 @@ public class Rollbar {
      * @param description the description of the error, or the message to send
      * @param level the level to send it at
      */
-    public void log(Throwable error, Map<String, Object> custom, String description, Level level) {
-        Payload p = buildPayload(error, custom, description, level);
-        sendPayload(p, error, description);
+     private CompletableFuture<RollbarResponse> log(Throwable error, Map<String, Object> custom, String description, Level level) {
+        Item p = buildPayload(error, custom, description, level);
+       return sendPayload(p, error, description);
     }
 
-    private Payload buildPayload(Throwable error, Map<String, Object> custom, String description, Level level) {
+    private Item buildPayload(Throwable error, Map<String, Object> custom, String description, Level level) {
         Body body;
         if (error != null) {
             body = Body.fromError(error, description);
@@ -526,7 +514,7 @@ public class Rollbar {
             throw new ArgumentNullException("error | description");
         }
 
-        level = level == null ? level(error, description) : level;
+        level = level == null ? level(error) : level;
 
         Map<String, Object> defaultCustom = getCustom();
         if (defaultCustom != null || custom != null) {
@@ -543,7 +531,7 @@ public class Rollbar {
         Data data = new Data(getEnvironment(), body, level, new Date(), getCodeVersion(), getPlatform(),
                              getLanguage(), getFramework(), getContext(), getRequest(), getPerson(), getServer(),
                              custom, null, null, null, getNotifier());
-        Payload p = new Payload(getAccessToken(), data);
+        Item p = new Item(getAccessToken(), data);
 
         if (getTransform() != null) {
             return getTransform().transform(p, error, description);
@@ -552,20 +540,21 @@ public class Rollbar {
         return p;
     }
 
-    private void sendPayload(Payload p, Throwable error, String description) {
-        if (getFilter() == null || getFilter().shouldSend(p, error, description)) {
-            getSender().send(p, getResponseHandler());
+    private CompletableFuture<RollbarResponse> sendPayload(Item p, Throwable error, String description) {
+        if (filter == null || filter.shouldSend(p, error, description)) {
+            return sender.send(p);
         }
+
+        return CompletableFuture.completedFuture(RollbarResponse.filtered());
     }
 
     /**
      * Get the level of the error or message. By default: CRITICAL for {@link Error}, ERROR for other {@link Throwable},
      * WARNING for messages. Override to change this default.
      * @param error the error
-     * @param description the description of the error, or the message if error is null
      * @return the level
      */
-    public Level level(Throwable error, String description) {
+    public Level level(Throwable error) {
         if (error == null) {
             return Level.WARNING;
         }
@@ -599,7 +588,7 @@ public class Rollbar {
      * @throws ArgumentNullException if environment is null
      */
     public Rollbar accessToken(String accessToken) throws ArgumentNullException {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -626,25 +615,7 @@ public class Rollbar {
      * @throws ArgumentNullException if environment is null
      */
     public Rollbar environment(String environment) throws ArgumentNullException {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
-    }
-
-    /**
-     * Get the Sender used to send payloads
-     * @return the Sender
-     */
-    public Sender getSender() {
-        return sender;
-    }
-
-    /**
-     * Set the sender
-     * Accessible for subclasses and IOC containers like spring.
-     * In Subclasses DO NOT USE OUTSIDE OF CONSTRUCTOR
-     * @param sender the new sender
-     */
-    protected void setSender(Sender sender) {
-        this.sender = sender;
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -652,8 +623,8 @@ public class Rollbar {
      * @param sender the new sender
      * @return a copy of this Rollbar with sender overridden
      */
-    public Rollbar sender(Sender sender) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+    public Rollbar sender(HttpItemClient sender) {
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -679,7 +650,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with code version overridden
      */
     public Rollbar codeVersion(String codeVersion) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -705,7 +676,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with platform overridden
      */
     public Rollbar platform(String platform) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -731,7 +702,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with language overridden
      */
     public Rollbar language(String language) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -757,7 +728,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with framework overridden
      */
     public Rollbar framework(String framework) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -783,7 +754,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with context overridden
      */
     public Rollbar context(String context) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -809,7 +780,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with request overridden
      */
     public Rollbar request(Request request) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -835,7 +806,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with person overridden
      */
     public Rollbar person(Person person) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -861,7 +832,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with server overridden
      */
     public Rollbar server(Server server) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -887,7 +858,7 @@ public class Rollbar {
      * @return a copy of this Rollbar with custom overridden
      */
     public Rollbar custom(Map<String, Object> custom) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
@@ -913,65 +884,13 @@ public class Rollbar {
      * @return a copy of this Rollbar with notifier overridden
      */
     public Rollbar notifier(Notifier notifier) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
-    }
-
-    /**
-     * @return the responseHandler
-     */
-    public RollbarResponseHandler getResponseHandler() {
-        return responseHandler;
-    }
-
-    /**
-     * Set the responseHandler
-     * Accessible for subclasses and IOC containers like spring.
-     * In Subclasses DO NOT USE OUTSIDE OF CONSTRUCTOR
-     * @param responseHandler the new responseHandler
-     */
-    protected void setResponseHandler(RollbarResponseHandler responseHandler) {
-        this.responseHandler = responseHandler;
-    }
-
-    /**
-     * Get a copy of this Rollbar with responseHandler overridden
-     * @param responseHandler the new platform
-     * @return a copy of this Rollbar with responseHandler overridden
-     */
-    public Rollbar responseHandler(RollbarResponseHandler responseHandler) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
-    }
-
-    /**
-     * @return the filter
-     */
-    public PayloadFilter getFilter() {
-        return filter;
-    }
-
-    /**
-     * Set the filter
-     * Accessible for subclasses and IOC containers like spring.
-     * In Subclasses DO NOT USE OUTSIDE OF CONSTRUCTOR
-     * @param filter the new filter
-     */
-    protected void setFilter(PayloadFilter filter) {
-        this.filter = filter;
-    }
-
-    /**
-     * Get a copy of this Rollbar with filter overridden
-     * @param filter the new platform
-     * @return a copy of this Rollbar with filter overridden
-     */
-    public Rollbar filter(PayloadFilter filter) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
     /**
      * @return the transform
      */
-    public PayloadTransform getTransform() {
+    public ItemTransform getTransform() {
         return transform;
     }
 
@@ -981,7 +900,7 @@ public class Rollbar {
      * In Subclasses DO NOT USE OUTSIDE OF CONSTRUCTOR
      * @param transform the new transform
      */
-    protected void setTransform(PayloadTransform transform) {
+    protected void setTransform(ItemTransform transform) {
         this.transform = transform;
     }
 
@@ -990,8 +909,8 @@ public class Rollbar {
      * @param transform the new platform
      * @return a copy of this Rollbar with transform overridden
      */
-    public Rollbar transform(PayloadTransform transform) {
-        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, responseHandler, filter, transform);
+    public Rollbar transform(ItemTransform transform) {
+        return new Rollbar(accessToken, environment, sender, codeVersion, platform, language, framework, context, request, person, server, custom, notifier, filter, transform);
     }
 
 }

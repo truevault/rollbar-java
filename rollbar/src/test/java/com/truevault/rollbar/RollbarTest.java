@@ -1,21 +1,18 @@
 package com.truevault.rollbar;
 
+import com.truevault.rollbar.http.ahc.AsyncHttpItemClient;
+import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class RollbarTest {
 
     @Test
-    public void itDoesNotThrowAnExceptionWhenConfiguringWithJustAccessTokenAndEnvironment() {
-        Rollbar rollbar = new Rollbar("some-access-token", "some-environment");
-        assertEquals("some-access-token", rollbar.getAccessToken());
-        assertEquals("some-environment", rollbar.getEnvironment());
-    }
-
-    @Test
-    public void itDoesNotThrowANullPointerExceptionWhenLoggingAnException() {
-        Rollbar rollbar = new Rollbar("some-access-token", "some-environment");
-        rollbar.log(new Exception("some exception"));
+    public void itDoesNotThrowANullPointerExceptionWhenLoggingAnException() throws ExecutionException,
+            InterruptedException {
+        Rollbar rollbar =
+                new Rollbar("e3a49f757f86465097c000cb2de9de08", "some-environment", new AsyncHttpItemClient());
+        assertNotNull(rollbar.log(new Exception("some exception")).get().getUuid());
     }
 }

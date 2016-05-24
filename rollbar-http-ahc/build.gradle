@@ -1,0 +1,9 @@
+dependencies {
+  compile project(':rollbar-http')
+  compile project(':rollbar-utilities')
+  compile 'org.asynchttpclient:async-http-client:2.0.3'
+
+  testRuntime "org.slf4j:slf4j-simple:$deps.slf4j"
+
+  testCompile 'com.google.guava:guava:19.0'
+}

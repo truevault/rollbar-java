@@ -1,5 +1,8 @@
 dependencies {
   compile project(':rollbar-utilities')
   compile project(':rollbar-payload')
-  compile project(':rollbar-sender')
+  compile project(':rollbar-http')
+  testCompile project(':rollbar-http-ahc')
+
+  testRuntime "org.slf4j:slf4j-simple:$deps.slf4j"
 }

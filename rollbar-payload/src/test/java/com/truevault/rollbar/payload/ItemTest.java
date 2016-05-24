@@ -9,16 +9,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
-public class PayloadTest {
+public class ItemTest {
     private Body b;
     private Data d;
-    private Payload p;
+    private Item p;
 
     @Before
     public void setUp() throws Exception {
         b = Body.fromString("Hello");
         d = new Data("ENVIRONMENT", b);
-        p = new Payload("TOKEN", d);
+        p = new Item("TOKEN", d);
     }
 
     @Test
@@ -33,7 +33,7 @@ public class PayloadTest {
 
     @Test
     public void testAccessTokenSet() throws Exception {
-        Payload withNewToken = p.accessToken("New Token");
+        Item withNewToken = p.accessToken("New Token");
         assertEquals("TOKEN", p.accessToken());
         assertEquals(withNewToken.accessToken(), "New Token");
         assertNotSame(p, withNewToken);
@@ -42,7 +42,7 @@ public class PayloadTest {
 
     @Test
     public void testDataSet() throws Exception {
-        Payload withNewData = p.data(new Data("OTHER ENVIRONMENT", b));
+        Item withNewData = p.data(new Data("OTHER ENVIRONMENT", b));
         assertEquals("ENVIRONMENT", p.data().environment());
         assertEquals("OTHER ENVIRONMENT", withNewData.data().environment());
         assertNotSame(p, withNewData);

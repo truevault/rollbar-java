@@ -9,7 +9,8 @@ buildscript {
 
 ext.deps = [
     junit  : '4.12',
-    jackson: '2.7.4'
+    jackson: '2.7.4',
+    slf4j  : '1.7.21'
 ]
 
 subprojects {
@@ -27,7 +28,7 @@ subprojects {
   }
 }
 
-['rollbar', 'rollbar-payload', 'rollbar-sender', 'rollbar-testing'].each { projName ->
+['rollbar', 'rollbar-payload', 'rollbar-http', 'rollbar-http-ahc'].each { projName ->
   project(projName) { project ->
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'

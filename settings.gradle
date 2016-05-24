@@ -1,3 +1,8 @@
 rootProject.name = 'rollbar-java'
 
-include 'rollbar', 'rollbar-payload', 'rollbar-sender', 'rollbar-testing', 'rollbar-utilities'
+include 'rollbar',
+'rollbar-payload',
+'rollbar-testing',
+'rollbar-utilities',
+'rollbar-http',
+'rollbar-http-ahc'
