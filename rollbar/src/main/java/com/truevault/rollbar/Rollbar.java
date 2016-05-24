@@ -99,27 +99,6 @@ public class Rollbar {
     }
 
     /**
-     * Handle all uncaught errors on current thread with this `Rollbar`
-     */
-    public void handleUncaughtErrors() {
-        handleUncaughtErrors(Thread.currentThread());
-    }
-
-    /**
-     * Handle all uncaught errors on {@code thread} with this `Rollbar`
-     * @param thread the thread to handle errors on
-     */
-    public void handleUncaughtErrors(Thread thread) {
-        Validate.isNotNull(thread, "thread");
-        final Rollbar rollbar = this;
-        thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                rollbar.log(e);
-            }
-        });
-    }
-
-    /**
      * Record a critical error
      * @param error the error
      */
