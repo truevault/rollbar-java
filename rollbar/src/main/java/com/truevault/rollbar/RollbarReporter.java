@@ -4,8 +4,16 @@ import com.truevault.rollbar.http.RollbarResponse;
 import com.truevault.rollbar.payload.data.Level;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 
+/**
+ * All of these methods return very quickly and execute the corresponding request in the background. If you want to wait
+ * for the request to complete, call {@link Future#get()}. If you want to log errors or perform some other action
+ * asynchronously but not wait for completion, you could use one of the many options CompletableFuture gives you, like
+ * {@link CompletableFuture#whenComplete(BiConsumer)}.
+ */
 public interface RollbarReporter {
     /**
      * Record a throwable as a critical error
@@ -98,7 +106,7 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> debug(Throwable t, Map<String, Object> custom);
 
     /**
-     * Record a throwable with extra information attached at the default levelOf retured by {@link DefaultRollbarReporter#levelOf}
+     * Record a throwable with extra information attached at the implementation-specific default level
      *
      * @param t      the throwable
      * @param custom the extra information
@@ -106,11 +114,11 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> log(Throwable t, Map<String, Object> custom);
 
     /**
-     * Record a throwable with extra information attached at the levelOf specified
+     * Record a throwable with extra information attached at the level specified
      *
      * @param t      the throwable
      * @param custom the extra information
-     * @param level  the levelOf
+     * @param level  the level
      */
     CompletableFuture<RollbarResponse> log(Throwable t, Map<String, Object> custom, @Nonnull Level level);
 
@@ -155,7 +163,7 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> debug(Throwable t, String description);
 
     /**
-     * Record a throwable with human readable description at the default levelOf returned by {@link DefaultRollbarReporter#levelOf}
+     * Record a throwable with human readable description at the implementation-specific default level
      *
      * @param t           the throwable
      * @param description human readable description of the error
@@ -163,11 +171,11 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> log(Throwable t, String description);
 
     /**
-     * Record a debug error with human readable description at the specified levelOf
+     * Record a debug error with human readable description at the specified level
      *
      * @param t           the throwable
      * @param description human readable description of the error
-     * @param level       the levelOf
+     * @param level       the level
      */
     CompletableFuture<RollbarResponse> log(Throwable t, String description, @Nonnull Level level);
 
@@ -217,8 +225,8 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> debug(Throwable t, Map<String, Object> custom, String description);
 
     /**
-     * Record a throwable with custom parameters and human readable description at the default levelOf returned by
-     * {@link DefaultRollbarReporter#levelOf}
+     * Record a throwable with custom parameters and human readable description at the implementation-specific default
+     * level
      *
      * @param t           the throwable
      * @param custom      the custom data
@@ -262,18 +270,17 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> debug(String message);
 
     /**
-     * Record a debugging message at the levelOf returned by {@link DefaultRollbarReporter#levelOf} (WARNING unless levelOf is
-     * overriden)
+     * Record a debugging message at the default level
      *
      * @param message the message
      */
     CompletableFuture<RollbarResponse> log(String message);
 
     /**
-     * Record a message at the levelOf specified
+     * Record a message at the level specified
      *
      * @param message the message
-     * @param level   the levelOf
+     * @param level   the level
      */
     CompletableFuture<RollbarResponse> log(String message, @Nonnull Level level);
 
@@ -326,11 +333,11 @@ public interface RollbarReporter {
     CompletableFuture<RollbarResponse> log(String message, Map<String, Object> custom);
 
     /**
-     * Record a message with extra infomation attached at the specified level
+     * Record a message with extra information attached at the specified level
      *
      * @param message the message
      * @param custom  the extra information
-     * @param level   the levelOf
+     * @param level   the level
      */
     CompletableFuture<RollbarResponse> log(String message, Map<String, Object> custom, @Nonnull Level level);
 }

@@ -255,7 +255,7 @@ public class DefaultRollbarReporter implements RollbarReporter {
     }
 
     /**
-     * Record a throwable or message with extra data at the levelOf specified. At least ene of `error` or `description`
+     * Record a throwable or message with extra data at the level specified. At least ene of `error` or `description`
      * must be non-null. If error is null, `description` will be sent as a message. If error is non-null, description
      * will be sent as the description of the throwable. Custom data will be attached to message if the throwable is
      * null.
@@ -263,7 +263,7 @@ public class DefaultRollbarReporter implements RollbarReporter {
      * @param t           the throwable (if any)
      * @param custom      the custom data (if any)
      * @param description the description of the throwable, or the message to send
-     * @param level       the levelOf to send it at
+     * @param level       the level to send it at
      */
     private CompletableFuture<RollbarResponse> log(@Nullable Throwable t, @Nullable Map<String, Object> custom,
             @Nullable String description, @Nonnull Level level) {

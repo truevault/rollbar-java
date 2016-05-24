@@ -47,7 +47,7 @@ Basic initialization will typically look like this:
 
 ```java
 RollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(),
-            "prod", "super secret access token") .build();
+            "prod", "super secret access token").build();
 
 ```
 
@@ -180,10 +180,9 @@ different threads for different parts of your UI you'll need to take that into c
 
 ## Tips for Optimal Usage
 
- * The `Extensible` class represents the various portions of the payload that can have arbitrary additional data sent.
+* The `Extensible` class represents the various portions of the payload that can have arbitrary additional data sent.
 
    This class contains two additional methods: `get(String key)` and `put(String key, Object value)`. `get` simply
    retrieves the value at that key. It can be used for built-in and custom keys. `put` checks the key against the
    built-in properties and will throw an `IllegalArgumentException` if it is one of the known values. This allows the
    built-in property setters to validate the properties when they are set.
-
