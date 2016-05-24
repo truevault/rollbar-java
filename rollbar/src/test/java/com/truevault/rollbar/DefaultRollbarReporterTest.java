@@ -6,13 +6,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
-public class RollbarTest {
+public class DefaultRollbarReporterTest {
 
     @Test
     public void itDoesNotThrowANullPointerExceptionWhenLoggingAnException() throws ExecutionException,
             InterruptedException {
-        Rollbar rollbar =
-                new Rollbar("e3a49f757f86465097c000cb2de9de08", "some-environment", new AsyncHttpItemClient());
+        DefaultRollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(), "foo", "e3a49f757f86465097c000cb2de9de08")
+                .build();
         assertNotNull(rollbar.log(new Exception("some exception")).get().getUuid());
     }
 }

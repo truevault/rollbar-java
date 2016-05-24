@@ -6,6 +6,7 @@ import com.truevault.rollbar.utilities.StringUtils;
 import com.truevault.rollbar.utilities.Validate;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * A container for the actual error(s), message, or crash report that caused this error.
@@ -18,8 +19,8 @@ public class Body {
      * @return the Rollbar Body constructed from the error
      * @throws ArgumentNullException if error is null
      */
-    public static Body fromError(Throwable error) throws ArgumentNullException {
-        return fromError(error, null);
+    public static Body fromThrowable(Throwable error) throws ArgumentNullException {
+        return fromThrowable(error, null);
     }
 
     /**
@@ -31,7 +32,7 @@ public class Body {
      * @return the Rollbar Body constructed from the error
      * @throws ArgumentNullException if error is null
      */
-    public static Body fromError(Throwable error, String description) throws ArgumentNullException {
+    public static Body fromThrowable(Throwable error, String description) throws ArgumentNullException {
         Validate.isNotNull(error, "error");
         if (error.getCause() == null) {
             return Body.trace(error, description);
@@ -116,6 +117,7 @@ public class Body {
      * Get the contents as a Trace, returns null if the contents is *not* a Trace
      * @return the contents as a Trace
      */
+    @Nullable
     public Trace trace() {
         if (contents instanceof Trace) {
             return (Trace) contents;
@@ -127,6 +129,7 @@ public class Body {
      * Get the contents as a TraceChain, returns null if the contents is *not* a TraceChain
      * @return the contents as a TraceChain
      */
+    @Nullable
     public TraceChain traceChain() {
         if (contents instanceof TraceChain) {
             return (TraceChain) contents;
@@ -138,6 +141,7 @@ public class Body {
      * Get the contents as a Message, returns null if the contents is *not* a Message
      * @return the contents as a Message
      */
+    @Nullable
     public Message message() {
         if (contents instanceof Message) {
             return (Message) contents;
@@ -149,6 +153,7 @@ public class Body {
      * Get the contents as a CrashReport, returns null if the contents is *not* a CrashReport
      * @return the contents as a CrashReport
      */
+    @Nullable
     public CrashReport crashReport() {
         if (contents instanceof CrashReport) {
             return (CrashReport) contents;

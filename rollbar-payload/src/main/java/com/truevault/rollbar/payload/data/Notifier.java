@@ -16,8 +16,7 @@ public class Notifier {
      * Constructor, with "rollbar" and the maven assembly version for {@code name} and {@code version}
      */
     public Notifier() {
-        this.name = defaultName;
-        this.version = defaultVersion;
+        this(defaultName, defaultVersion);
     }
 
     /**

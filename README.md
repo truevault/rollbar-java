@@ -1,30 +1,24 @@
 ## Overview
 
-This library allows reporting issues to Rollbar in anything that can use Java.
+This library allows reporting issues to Rollbar in anything that can use Java. This is a heavily modified fork of the original [Java library from Rollbar](https://github.com/rollbar/rollbar-java). The major changes in this fork are using non-blocking I/O for its HTTP requests so that your app doesn't have to wait, Jackson for its JSON serialization, and a tidier API (though aesthetic things like that are arguable of course).
 
-It's still under development, and many of the design decisions may still
-be altered. If you have an opinion voice it in the issues!
-
-The library is split into small modules to enable re-use as much as
-possible. If you want to change a single piece of how it works it should
-be relatively straightforward.
-
-* `rollbar-utilties` contains code shared by the other modules.
-* `rollbar-testing` contains shared test code.
-* `rollbar-sender` implements sending occurrences to Rollbar. No external
-dependencies make this lightweight, but a good candidate for an
-upgrade.
-* `rollbar-payload` implements a Payload object that can be serialized to
-JSON. It does so with no external dependencies.
-* `rollbar` brings together all the pieces from above to make it easy to
-install and start recording errors.
-
-## Installing
-
-If you want to work on the code, you can build it yourself with `./gradlew build`.
+## Setup
 
 If you want to use the code in your project, add it as a dependency. Released
 artifacts are hosted on JCenter.
+
+### Gradle
+
+```groovy
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile('com.truevault.rollbar:rollbar:1.0.0')
+  compile('com.truevault.rollbar:rollbar-http-ahc:1.0.0')
+}
+```
 
 ### Maven
 
@@ -39,20 +33,34 @@ Add the dependency to your pom file:
    <artifactId>rollbar</artifactId>
    <version>1.0.0</version>
 </dependency>
+<dependency>
+  <groupId>com.truevault.rollbar</groupId>
+   <artifactId>rollbar-http-ahc</artifactId>
+   <version>1.0.0</version>
+</dependency>
 </dependencies>
 ```
 
-### Gradle
+## Setup
 
-```groovy
-repositories {
-  jcenter()
-}
+Basic initialization will typically look like this:
 
-dependencies {
-  compile('com.truevault.rollbar:rollbar:1.0.0')
-}
+```java
+RollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(), "prod", "super secret access token")
+        .build();
+
 ```
+
+This uses the default http layer (which uses [Async Http Client](https://github.com/AsyncHttpClient/async-http-client), provided by the `rollbar-http-ahc` artifact you depended on above). If you want to use a different HTTP client, you can implement `HttpItemClient` instead and use your custom one.
+
+`DefaultRollbarReporter.Builder` will let you customize a few other things; see the javadoc for more.
+
+- Set an `ItemFilter` to suppress certain reports at runtime.
+- Set an `ItemTransformer` to alter reports right before they're sent (say, to remove personally identifying info)
+- Customize how Throwables are mapped to Rollbar `Level`s
+- Customize the default data added to each new report
+
+If you need further customization, you can implement your own `RollbarReporter` (perhaps wrapping the `DefaultRollbarReporter`).
 
 ## Usage
 
@@ -60,22 +68,21 @@ If you're writing a simple app that uses a single thread (like a command line to
 set an `UncaughtExceptionHandler` for the main thread:
 
 ```java
-Rollbar rollbar = ...
 Thread.currentThread().setUncaughtExceptionHandler((t, e) -> rollbar.log(e));
 ```
 
 ## Web frameworks
 
 If you're running a Web application or using a framework that handles errors in a special way you'll need to get an
-instance of a `Rollbar` using whatever technique is appropriate for your framework. For Spring, for instance, a properly
+instance of a `RollbarReporter` using whatever technique is appropriate for your framework. For Spring, for instance, a properly
 configured Rollbar bean along with the following class will do the trick:
 
 ```java
 @ControllerAdvice
 class RollbarExceptionHandler {
-    private final Rollbar rollbar;
+    private final RollbarReporter rollbar;
 
-    public RollbarExceptionHandler(Rollbar rollbar) {
+    public RollbarExceptionHandler(RollbarReporter rollbar) {
         this.rollbar = rollbar;
     }
 
@@ -97,10 +104,12 @@ You might configure your bean with something like this:
 package com.yourcompany.product;
 
 import org.springframework.beans.factory.FactoryBean;
-import com.truevault.rollbar.Rollbar;
+import com.truevault.rollbar.RollbarReporter;
 
-public class RollbarBean implements FactoryBean<Rollbar> {
-	private Rollbar rollbar = new Rollbar("YOUR_ACCESS_TOKEN_HERE", "production");
+public class RollbarBean implements FactoryBean<RollbarReporter> {
+	private RollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(),
+                                                    "prod", "super secret access token")
+                                              .build();
 
 	@Override
 	public Rollbar getObject() throws Exception {
@@ -108,13 +117,13 @@ public class RollbarBean implements FactoryBean<Rollbar> {
 	}
 
 	@Override
-	public Class<? extends Rollbar> getObjectType() {
-		return rollbar.getClass();
+	public Class<? extends RollbarReporter> getObjectType() {
+		return RollbarReporter.class;
 	}
 
 	@Override
 	public boolean isSingleton() {
-		return false;
+		return true;
 	}
 }
 ```
@@ -123,28 +132,23 @@ You can, of course, always choose to configure this with XML.
 
 ## Custom usage
 
-
 Rollbar also provides a set of classes for building and sending error reports to Rollbar.
 
 The simplest way to use this is with a `try/catch` like so:
 
 ```java
 public class MyClass {
-    public static final String SERVER_POST_ACCESS_TOKEN = getAccessToken();
-    public static final String ENVIRONMENT = currentEnvironment();
+    private final RollbarReporter rollbar = ...;
 
     /*...*/
     public void doSomething() {
         try {
             this.monitoredMethod();
         } catch (Throwable t) {
-            Payload p = Payload.fromError(SERVER_POST_ACCESS_TOKEN, ENVIRONMENT, t, null);
-            try {
-                // Here you can filter or transform the payload as needed before sending it
-                p.send();
-            } catch (ConnectionFailedExeption e) {
-                Logger.getLogger(MyClass.class.getName()).severe(p.toJson());
-            }
+            // this returns a CompletableFuture, so add .get() if you want to wait until the request either succeeds
+            // or fails, or whenComplete() or equivalent to log if something goes wrong with the request.
+            rollbar.log(t);
+
             // You can obviously choose to do something *other* than re-throw the exception
             throw t;
         }
@@ -157,20 +161,13 @@ For general use you'll want to do something like this:
 
 ```java
 public class Program {
-    public static final String SERVER_POST_ACCESS_TOKEN = getAccessToken();
-    public static final String ENVIRONMENT = currentEnvironment();
-
     /*...*/
     public void main(String[] argv) {
+        RollbarReporter rollbar = ...;
         Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
             public void uncaughtException(Thread t, Throwable e) {
-                Payload p = Payload.fromError(SERVER_POST_ACCESS_TOKEN, ENVIRONMENT, t, null);
-                try {
-                    // Here you can filter or transform the payload as needed before sending it
-                    p.send();
-                } catch (ConnectionFailedExeption e) {
-                    Logger.getLogger(MyClass.class.getName()).severe(p.toJson());
-                }
+                rollbar.log(t);
                 throw t;
             }
         });
@@ -183,40 +180,10 @@ different threads for different parts of your UI you'll need to take that into c
 
 ## Tips for Optimal Usage
 
- * If you can construct the `Payload`, it compiles, and does not throw an exception in the process, then it's valid to
-   send to Rollbar and will be displayed correctly in the interface.
-
- * Everything in the `payload` package is immutable, exposing a fluent interface for making small changes to the Payload.
-
-   In practice this means the 'setters' are very expensive (because they create a whole new object every time). Since
-   reporting exceptions should be the "exceptional" case, this should not matter in practice. (Please report any serious
-   performance issues!). If you are only going to alter one or two fields then using these setters is a great time
-   saver, and you should feel free to use them. If you are fully customizing a portion of your payload with lots of
-   custom data, however, you should use the constructor that exposes all the fields available to the class.
-
- * The fluent interface uses `property()` as the getter, and `property(TypeName val)` as the setter, rather than the
-   typical Java `getProperty()` and `setProperty()` convention. This should help remind the user that the setter isn't
-   doing a simple set operation, and results in an attractive (to the Author) fluent interface:
-
-   ```java
-   Server s = new Server()
-       .host("www.rollbar.com")
-       .branch("master")
-       .codeVersion("b01ff9e")
-       .put("TAttUQoLtUaE", 42);
-   ```
-
- * Every class in `payload` has two constructors: one that contains the required fields, and one that contains all the
-   fields that the class offers. Prefer the latter ones to using the fluent setters with the smaller constructor.
  * The `Extensible` class represents the various portions of the payload that can have arbitrary additional data sent.
 
    This class contains two additional methods: `get(String key)` and `put(String key, Object value)`. `get` simply
    retrieves the value at that key. It can be used for built-in and custom keys. `put` checks the key against the
    built-in properties and will throw an `IllegalArgumentException` if it is one of the known values. This allows the
    built-in property setters to validate the properties when they are set.
- * The `send` method, replace `Sender` if you need something asynchronous you will not be able to use `Payload.send`.
-   Build a similar static method to what you find in `PayloadSender` and use that instead! This will also allow you to
-   use a library (like Apache or Google's HttpClient library).
- * If you integrate your library into a library for which there is no sub-library on Maven, consider creating a package
-   so others can benefit from your expertise!
 

@@ -5,7 +5,9 @@ import com.truevault.rollbar.http.ErrorMessageResponseException;
 import com.truevault.rollbar.http.HttpResponseException;
 import com.truevault.rollbar.http.RollbarResponse;
 import com.truevault.rollbar.payload.Item;
+import com.truevault.rollbar.payload.data.Data;
 import com.truevault.rollbar.payload.data.Notifier;
+import com.truevault.rollbar.payload.data.body.Body;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -28,7 +30,8 @@ public class AsyncHttpItemClientTest {
     @Test
     public void sendInvalidWorks() throws InterruptedException {
         CompletableFuture<RollbarResponse>
-                response = sender.send(Item.fromMessage("BAD_ACCESS_TOKEN", "test", "test from rollbar-java", null));
+                response = sender.send(new Item("BAD_ACCESS_TOKEN",
+                new Data.Builder().environment("test").body(Body.fromString("shouldn't work")).build()));
 
         try {
             response.get();
@@ -44,8 +47,9 @@ public class AsyncHttpItemClientTest {
 
     @Test
     public void sendValidWorks() throws ExecutionException, InterruptedException {
-        Item p = Item.fromMessage("e3a49f757f86465097c000cb2de9de08", "Hello, World!", "production", null);
-        p = p.data(p.data().notifier(new Notifier()));
+        Item p = new Item("e3a49f757f86465097c000cb2de9de08",
+                new Data.Builder().environment("test").body(Body.fromString("hello")).build());
+        p = new Item(p.accessToken(), p.data().toBuilder().notifier(new Notifier()).build());
         RollbarResponse response = sender.send(p).get();
         assertNotNull(response.getUuid());
     }

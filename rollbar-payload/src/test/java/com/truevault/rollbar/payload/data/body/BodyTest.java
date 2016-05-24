@@ -8,15 +8,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by chris on 11/24/15.
- */
 public class BodyTest {
 
     @Test
     public void testFromError() throws Exception {
         Throwable err = getError();
-        Body fromErr = Body.fromError(err);
+        Body fromErr = Body.fromThrowable(err);
         assertNotNull(fromErr);
         assertNotNull(fromErr.trace());
         assertNotNull(fromErr.trace().exception());
@@ -28,7 +25,7 @@ public class BodyTest {
     @Test
     public void testTraceChain() throws Exception {
         Throwable err = getChainedError();
-        Body fromErr = Body.fromError(err);
+        Body fromErr = Body.fromThrowable(err);
         assertNotNull(fromErr);
         assertNotNull(fromErr.traceChain());
         assertNotNull(fromErr.traceChain().traces());
@@ -49,7 +46,7 @@ public class BodyTest {
 
     @Test
     public void testMessageWithExtras() throws Exception {
-        LinkedHashMap<String, Object> extras = new LinkedHashMap<String, Object>();
+        LinkedHashMap<String, Object> extras = new LinkedHashMap<>();
         extras.put("HELLO", "WORLD");
         Body fromStr = Body.fromString("Send a message", extras);
         assertNotNull(fromStr);

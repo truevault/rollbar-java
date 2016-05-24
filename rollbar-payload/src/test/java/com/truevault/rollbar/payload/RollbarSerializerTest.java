@@ -26,11 +26,11 @@ public class RollbarSerializerTest {
 
     @Test
     public void TestBasicSerialize() throws JsonProcessingException {
-        final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
+        final LinkedHashMap<String, Object> members = new LinkedHashMap<>();
         members.put("extra", "has-extra");
         final Body body = Body.fromString(testMessage, members);
-        final Data data = new Data(environment, body)
-                .notifier(new Notifier());
+        final Data data = new Data.Builder().environment(environment).body(body)
+                .notifier(new Notifier()).build();
 
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         assertEquals(basicExpected, json);
@@ -38,8 +38,8 @@ public class RollbarSerializerTest {
 
     @Test
     public void TestExceptionSerialize() throws IOException {
-        final Body body = Body.fromError(getError());
-        final Data data = new Data(environment, body);
+        final Body body = Body.fromThrowable(getError());
+        final Data data = new Data.Builder().environment(environment).body(body).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
@@ -64,8 +64,8 @@ public class RollbarSerializerTest {
 
     @Test
     public void TestChainedExceptionSerialize() throws IOException {
-        final Body body = Body.fromError(getChainedError());
-        final Data data = new Data(environment, body);
+        final Body body = Body.fromThrowable(getChainedError());
+        final Data data = new Data.Builder().environment(environment).body(body).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
@@ -78,7 +78,7 @@ public class RollbarSerializerTest {
     public void TestExtensibleSerialize() throws IOException {
         final Message msg = new Message("Message").put("extra", "value");
         final Body body = new Body(msg);
-        final Data data = new Data(environment, body);
+        final Data data = new Data.Builder().environment(environment).body(body).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         JsonNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         final String b =
