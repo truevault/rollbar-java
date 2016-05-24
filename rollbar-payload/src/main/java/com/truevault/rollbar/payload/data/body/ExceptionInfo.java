@@ -8,11 +8,16 @@ import com.truevault.rollbar.utilities.Validate;
  * Represents *non-stacktrace* information about an exception, like class, description, and message.
  */
 public class ExceptionInfo {
+    private final String className;
+    private final String message;
+    private final String description;
+
     /**
      * Create an exception info from a throwable.
+     *
      * @param error the throwable
-     * @throws ArgumentNullException if the error is null
      * @return an exception info with information gathered from the error
+     * @throws ArgumentNullException if the error is null
      */
     public static ExceptionInfo fromThrowable(Throwable error) throws ArgumentNullException {
         return fromThrowable(error, null);
@@ -20,10 +25,11 @@ public class ExceptionInfo {
 
     /**
      * Create an exception info from an error and a (human readable) description of the error
-     * @param error the error
+     *
+     * @param error       the error
      * @param description the human readable description of the error
-     * @throws ArgumentNullException if the error is null
      * @return the ExceptionInfo built from the error and the description
+     * @throws ArgumentNullException if the error is null
      */
     public static ExceptionInfo fromThrowable(Throwable error, String description) throws ArgumentNullException {
         Validate.isNotNull(error, "error");
@@ -32,12 +38,9 @@ public class ExceptionInfo {
         return new ExceptionInfo(className, message, description);
     }
 
-    private final String className;
-    private final String message;
-    private final String description;
-
     /**
      * Constructor
+     *
      * @param className the name of the exception class
      * @throws ArgumentNullException if the name is null or whitespace
      */
@@ -47,8 +50,9 @@ public class ExceptionInfo {
 
     /**
      * Constructor
-     * @param className the name of the exception class
-     * @param message the exception message
+     *
+     * @param className   the name of the exception class
+     * @param message     the exception message
      * @param description a human readable description of the exception
      * @throws ArgumentNullException if className is null or whitespace
      */
@@ -68,30 +72,11 @@ public class ExceptionInfo {
     }
 
     /**
-     * Set the className on a copy of this ExceptionInfo
-     * @param className the new className
-     * @return a copy of this ExceptionInfo with className overridden
-     * @throws ArgumentNullException if className is null or whitespace
-     */
-    public ExceptionInfo className(String className) throws ArgumentNullException {
-        return new ExceptionInfo(className, message, description);
-    }
-
-    /**
      * @return the exception message
      */
     @JsonProperty("message")
     public String message() {
         return this.message;
-    }
-
-    /**
-     * Set the message on a copy of this ExceptionInfo
-     * @param message the new message
-     * @return a copy of this ExceptionInfo with message overridden
-     */
-    public ExceptionInfo message(String message) {
-        return new ExceptionInfo(className, message, description);
     }
 
     /**
@@ -101,14 +86,4 @@ public class ExceptionInfo {
     public String description() {
         return this.description;
     }
-
-    /**
-     * Set the description on a copy of this ExceptionInfo
-     * @param description the new description
-     * @return a copy of this ExceptionInfo with description overriden
-     */
-    public ExceptionInfo description(String description) {
-        return new ExceptionInfo(className, message, description);
-    }
-
 }

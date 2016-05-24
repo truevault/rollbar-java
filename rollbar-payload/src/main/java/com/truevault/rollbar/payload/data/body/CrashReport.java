@@ -30,14 +30,4 @@ public class CrashReport implements BodyContents {
         return this.raw;
     }
 
-    /**
-     * Set the raw string in a copy of this CrashReport
-     *
-     * @param raw the new crash report string
-     * @return a copy of this CrashReport with raw overridden
-     * @throws ArgumentNullException if raw is null
-     */
-    public CrashReport raw(String raw) throws ArgumentNullException {
-        return new CrashReport(raw);
-    }
 }

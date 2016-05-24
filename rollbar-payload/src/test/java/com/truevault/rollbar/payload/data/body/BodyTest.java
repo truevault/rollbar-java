@@ -19,7 +19,7 @@ public class BodyTest {
         assertNotNull(fromErr.trace().exception());
         assertEquals("RuntimeException", fromErr.trace().exception().className());
         assertEquals("TRICKY!", fromErr.trace().exception().message());
-        assertTrue(fromErr.trace().frames().length > 2);
+        assertTrue(fromErr.trace().frames().size() > 2);
     }
 
     @Test

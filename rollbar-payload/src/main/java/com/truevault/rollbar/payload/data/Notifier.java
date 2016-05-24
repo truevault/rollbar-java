@@ -38,29 +38,11 @@ public class Notifier {
     }
 
     /**
-     * Set the name on a copy of this notifier
-     * @param name the new name
-     * @return the name of the notifier
-     */
-    public Notifier name(String name) {
-        return new Notifier(name, version);
-    }
-
-    /**
      * @return the version of the notifier
      */
     @JsonProperty("version")
     public String version() {
         return this.version;
-    }
-
-    /**
-     * Set the version on a copy of this notifier
-     * @param version the new version
-     * @return a copy of this notifier with the new version
-     */
-    public Notifier version(String version) {
-        return new Notifier(name, version);
     }
 
 }

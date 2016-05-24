@@ -57,13 +57,4 @@ public class Message extends Extensible<Message> implements BodyContents {
         return (String) get(BODY_KEY);
     }
 
-    /**
-     * Set body in a copy of this message
-     * @param body the new body
-     * @return a copy of this message with body overridden
-     * @throws ArgumentNullException if body is null
-     */
-    public Message body(String body) throws ArgumentNullException {
-        return new Message(body, getMembers());
-    }
 }

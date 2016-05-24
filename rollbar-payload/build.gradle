@@ -1,6 +1,5 @@
 dependencies {
   compile project(':rollbar-utilities')
-  testCompile project(':rollbar-testing')
 
   compile "com.fasterxml.jackson.core:jackson-annotations:$deps.jackson"
 }

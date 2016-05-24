@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -16,41 +17,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class Extensible<T extends Extensible<T>> {
-    /**
-     * Constructor
-     * @param members the LinkedHashMap of all members already in this object
-     */
-    protected Extensible(Map<String, Object> members) {
-        if (members == null) {
-            this.members = new TreeMap<String, Object>();
-        } else {
-            this.members = new TreeMap<String, Object>(members);
-        }
-    }
-
-    /**
-     * Returns the 'known' keys, that are specially treated by Rollbar
-     * @return the set of known keys
-     */
-    protected abstract Set<String> getKnownMembers();
-
     private Set<String> knownMembers;
 
-    private Set<String> knownMembers() {
-        if (knownMembers == null) {
-            knownMembers = getKnownMembers();
-        }
-        return knownMembers;
-    }
-
-    private boolean isKnownMember(String name) {
-        return knownMembers().contains(name);
-    }
-
-    /**
-     * The LinkedHashMap containing all members.
-     */
     private final TreeMap<String, Object> members;
+
+    protected Extensible(@Nullable Map<String, Object> members) {
+        if (members == null) {
+            this.members = new TreeMap<>();
+        } else {
+            this.members = new TreeMap<>(members);
+        }
+    }
 
     /**
      * Get the member, or null if not present.
@@ -68,6 +45,12 @@ public abstract class Extensible<T extends Extensible<T>> {
     public abstract T copy();
 
     /**
+     * Returns the 'known' keys, that are specially treated by Rollbar
+     * @return the set of known keys
+     */
+    protected abstract Set<String> getKnownMembers();
+
+    /**
      * Sets the member. Cannot be used to set known members.
      * @param name the member name to set.
      * @param value the value to set.
@@ -83,6 +66,17 @@ public abstract class Extensible<T extends Extensible<T>> {
         @SuppressWarnings("unchecked")
         T returned = (T) returnVal;
         return returned;
+    }
+
+    private Set<String> knownMembers() {
+        if (knownMembers == null) {
+            knownMembers = getKnownMembers();
+        }
+        return knownMembers;
+    }
+
+    private boolean isKnownMember(String name) {
+        return knownMembers().contains(name);
     }
 
     /**
@@ -116,7 +110,7 @@ public abstract class Extensible<T extends Extensible<T>> {
      * @return a copy of the members in this Extensible.
      */
     public Map<String, Object> getMembers() {
-        return new TreeMap<String, Object>(members);
+        return new TreeMap<>(members);
     }
 
     @JsonValue
