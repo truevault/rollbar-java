@@ -46,8 +46,8 @@ Add the dependency to your pom file:
 Basic initialization will typically look like this:
 
 ```java
-RollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(), "prod", "super secret access token")
-        .build();
+RollbarReporter rollbar = new DefaultRollbarReporter.Builder(new AsyncHttpItemClient(),
+            "prod", "super secret access token") .build();
 
 ```
 
