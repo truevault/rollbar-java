@@ -70,9 +70,7 @@ public class Data {
     }
 
     public Data.Builder toBuilder() {
-        return new Builder()
-                .environment(environment)
-                .body(body)
+        return new Builder(body, environment)
                 .level(level)
                 .timestamp(timestamp)
                 .codeVersion(codeVersion)
@@ -247,7 +245,21 @@ public class Data {
         private Notifier notifier = null;
         private UUID uuid;
 
+        /**
+         * Create an empty Builder. Ensure that body and environment are set before calling build().
+         */
         public Builder() {
+        }
+
+        /**
+         * Create a Builder with body and environment set (the two required fields).
+         *
+         * Unless you are explicitly trying to create an incomplete Builder, you should use this constructor to ensure
+         * you have the required fields.
+         */
+        public Builder(@Nonnull Body body, @Nonnull String environment) {
+            this.body = body;
+            this.environment = environment;
         }
 
         /**

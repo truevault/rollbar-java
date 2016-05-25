@@ -29,7 +29,7 @@ public class RollbarSerializerTest {
         final LinkedHashMap<String, Object> members = new LinkedHashMap<>();
         members.put("extra", "has-extra");
         final Body body = Body.fromString(testMessage, members);
-        final Data data = new Data.Builder().environment(environment).body(body)
+        final Data data = new Data.Builder(body, environment)
                 .notifier(new Notifier()).build();
 
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
@@ -39,7 +39,7 @@ public class RollbarSerializerTest {
     @Test
     public void testExceptionSerialize() throws IOException {
         final Body body = Body.fromThrowable(getThrowable());
-        final Data data = new Data.Builder().environment(environment).body(body).build();
+        final Data data = new Data.Builder(body, environment).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
@@ -65,7 +65,7 @@ public class RollbarSerializerTest {
     @Test
     public void testChainedExceptionSerialize() throws IOException {
         final Body body = Body.fromThrowable(getChainedThrowable());
-        final Data data = new Data.Builder().environment(environment).body(body).build();
+        final Data data = new Data.Builder(body, environment).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         assertEquals(accessToken, parsed.get("access_token").textValue());
@@ -78,7 +78,7 @@ public class RollbarSerializerTest {
     public void testExtensibleSerialize() throws IOException {
         final Message msg = new Message("Message").put("extra", "value");
         final Body body = new Body(msg);
-        final Data data = new Data.Builder().environment(environment).body(body).build();
+        final Data data = new Data.Builder(body, environment).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         JsonNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
         final String b =

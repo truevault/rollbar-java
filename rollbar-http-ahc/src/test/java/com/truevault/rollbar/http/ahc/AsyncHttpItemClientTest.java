@@ -31,7 +31,7 @@ public class AsyncHttpItemClientTest {
     public void sendInvalidWorks() throws InterruptedException {
         CompletableFuture<RollbarResponse>
                 response = sender.send(new Item("BAD_ACCESS_TOKEN",
-                new Data.Builder().environment("test").body(Body.fromString("shouldn't work")).build()));
+                new Data.Builder(Body.fromString("shouldn't work"), "test").build()));
 
         try {
             response.get();
@@ -48,7 +48,7 @@ public class AsyncHttpItemClientTest {
     @Test
     public void sendValidWorks() throws ExecutionException, InterruptedException {
         Item p = new Item("e3a49f757f86465097c000cb2de9de08",
-                new Data.Builder().environment("test").body(Body.fromString("hello")).build());
+                new Data.Builder(Body.fromString("hello"), "test").build());
         p = new Item(p.accessToken(), p.data().toBuilder().notifier(new Notifier()).build());
         RollbarResponse response = sender.send(p).get();
         assertNotNull(response.getUuid());

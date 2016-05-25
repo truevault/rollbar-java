@@ -1,7 +1,10 @@
 package com.truevault.rollbar.utilities;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ValidateTest {
     @Test(expected = ArgumentNullException.class)
@@ -23,9 +26,11 @@ public class ValidateTest {
     public void testIsNotNullOrWhitespaceUsesArgName() throws Exception {
         try {
             Validate.isNotNullOrWhitespace("  \t\n", "argName");
+            fail();
         } catch (ArgumentNullException e) {
             String msg = e.getMessage();
-            Assert.assertTrue(String.format("'%s' does not contain 'argName'", msg), msg != null && msg.contains("argName"));
+            assertTrue(String.format("'%s' does not contain 'argName'", msg),
+                    msg != null && msg.contains("argName"));
         }
     }
 
@@ -38,26 +43,30 @@ public class ValidateTest {
     public void testMaxLengthException() throws Exception {
         try {
             Validate.maxLength("Test", 2, "argName");
+            fail();
         } catch (InvalidLengthException e) {
             String msg = e.getMessage();
-            Assert.assertTrue(String.format("'%s' does not contain 'over 2'", msg), msg != null && msg.contains("over 2"));
-            Assert.assertTrue(String.format("'%s' does not contain 'argName'", msg), msg.contains("argName"));
+            assertTrue(String.format("'%s' does not contain 'over 2'", msg),
+                    msg != null && msg.contains("over 2"));
+            assertTrue(String.format("'%s' does not contain 'argName'", msg), msg.contains("argName"));
         }
     }
 
     @Test(expected = InvalidLengthException.class)
     public void testMinLength() throws Exception {
-        Validate.minLength(new String[] {}, 1, "argName");
+        Validate.minLength(emptyList(), 1, "argName");
     }
 
     @Test
     public void testMinLengthException() throws Exception {
         try {
-            Validate.minLength(new Character[0], 2, "argName");
+            Validate.minLength(emptyList(), 2, "argName");
+            fail();
         } catch (InvalidLengthException e) {
             String msg = e.getMessage();
-            Assert.assertTrue(String.format("'%s' does not contain 'under 2'", msg), msg != null && msg.contains("under 2"));
-            Assert.assertTrue(String.format("'%s' does not contain 'argName'", msg), msg.contains("argName"));
+            assertTrue(String.format("'%s' does not contain 'under 2'", msg),
+                    msg != null && msg.contains("under 2"));
+            assertTrue(String.format("'%s' does not contain 'argName'", msg), msg.contains("argName"));
         }
     }
 
@@ -70,10 +79,11 @@ public class ValidateTest {
     public void testIsNotNullUsesArgName() throws Exception {
         try {
             Validate.isNotNull(null, "argName");
+            fail();
         } catch (ArgumentNullException e) {
             String msg = e.getMessage();
-            Assert.assertTrue(String.format("'%s' does not contain 'argName'", msg), msg != null && msg.contains("argName"));
+            assertTrue(String.format("'%s' does not contain 'argName'", msg),
+                    msg != null && msg.contains("argName"));
         }
     }
-
 }

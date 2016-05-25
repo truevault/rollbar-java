@@ -254,6 +254,11 @@ public class DefaultRollbarReporter implements RollbarReporter {
         return log(null, custom, message, level);
     }
 
+    @Override
+    public CompletableFuture<RollbarResponse> log(Data data, @Nullable Throwable t, @Nullable String description) {
+        return sendItem(t, description, new Item(accessToken, data));
+    }
+
     /**
      * Record a throwable or message with extra data at the level specified. At least ene of `error` or `description`
      * must be non-null. If error is null, `description` will be sent as a message. If error is non-null, description
@@ -267,15 +272,22 @@ public class DefaultRollbarReporter implements RollbarReporter {
      */
     private CompletableFuture<RollbarResponse> log(@Nullable Throwable t, @Nullable Map<String, Object> custom,
             @Nullable String description, @Nonnull Level level) {
-        Item p = buildPayload(t, custom, description, level);
-        if (filter == null || filter.shouldSend(p, t, description)) {
-            return sender.send(p);
+        return sendItem(t, description, buildItem(t, custom, description, level));
+    }
+
+    private CompletableFuture<RollbarResponse> sendItem(@Nullable Throwable t, @Nullable String description, Item item) {
+        if (transform != null) {
+            item = transform.transform(item, t, description);
+        }
+
+        if (filter == null || filter.shouldSend(item, t, description)) {
+            return sender.send(item);
         }
 
         return CompletableFuture.completedFuture(RollbarResponse.filtered());
     }
 
-    private Item buildPayload(Throwable t, Map<String, Object> custom, String description, @Nonnull Level level) {
+    private Item buildItem(Throwable t, Map<String, Object> custom, String description, @Nonnull Level level) {
         Body body;
         if (t != null) {
             body = Body.fromThrowable(t, description);
@@ -293,13 +305,8 @@ public class DefaultRollbarReporter implements RollbarReporter {
                 .custom(custom)
                 .environment(environment)
                 .build();
-        Item p = new Item(accessToken, data);
 
-        if (transform != null) {
-            return transform.transform(p, t, description);
-        }
-
-        return p;
+        return new Item(accessToken, data);
     }
 
     /**
@@ -331,8 +338,6 @@ public class DefaultRollbarReporter implements RollbarReporter {
             }
             return Level.ERROR;
         };
-
-
 
         /**
          * @param httpItemClient The {@link HttpItemClient} to use.

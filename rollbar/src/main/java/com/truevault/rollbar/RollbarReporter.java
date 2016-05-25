@@ -1,12 +1,14 @@
 package com.truevault.rollbar;
 
 import com.truevault.rollbar.http.RollbarResponse;
+import com.truevault.rollbar.payload.data.Data;
 import com.truevault.rollbar.payload.data.Level;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * All of these methods return very quickly and execute the corresponding request in the background. If you want to wait
@@ -340,4 +342,15 @@ public interface RollbarReporter {
      * @param level   the level
      */
     CompletableFuture<RollbarResponse> log(String message, Map<String, Object> custom, @Nonnull Level level);
+
+    /**
+     * Record a fully formed Data object. If the other methods in this interface don't express what you need, and the
+     * other configuration options won't let you do what you need to do, this will give you control over all the details
+     * of what is sent.
+     *
+     * @param data        a Data object with at least environment and body set
+     * @param t           the throwable responsible, if any
+     * @param description the description, if any
+     */
+    CompletableFuture<RollbarResponse> log(Data data, @Nullable Throwable t, @Nullable String description);
 }

@@ -1,5 +1,7 @@
 package com.truevault.rollbar.utilities;
 
+import java.util.List;
+
 /**
  * Validates arguments. Throws runtime exceptions when the validation fails.
  */
@@ -37,8 +39,8 @@ public class Validate {
      * @param <T> the type of the array
      * @throws InvalidLengthException if {@code x} is shorter than {@code max}
      */
-    public static <T> void minLength(T[] x, int min, String name) throws InvalidLengthException {
-        if (x.length < min) {
+    public static <T> void minLength(List<T> x, int min, String name) throws InvalidLengthException {
+        if (x.size() < min) {
             throw InvalidLengthException.TooShort(name, min);
         }
     }

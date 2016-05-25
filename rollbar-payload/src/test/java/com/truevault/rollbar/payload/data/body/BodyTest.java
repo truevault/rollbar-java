@@ -29,11 +29,11 @@ public class BodyTest {
         assertNotNull(fromErr);
         assertNotNull(fromErr.traceChain());
         assertNotNull(fromErr.traceChain().traces());
-        assertEquals(2, fromErr.traceChain().traces().length);
-        assertEquals("RuntimeException", fromErr.traceChain().traces()[1].exception().className());
-        assertEquals("TRICKY!", fromErr.traceChain().traces()[1].exception().message());
-        assertEquals("IllegalStateException", fromErr.traceChain().traces()[0].exception().className());
-        assertEquals("Nested Tricky!", fromErr.traceChain().traces()[0].exception().message());
+        assertEquals(2, fromErr.traceChain().traces().size());
+        assertEquals("RuntimeException", fromErr.traceChain().traces().get(1).exception().className());
+        assertEquals("TRICKY!", fromErr.traceChain().traces().get(1).exception().message());
+        assertEquals("IllegalStateException", fromErr.traceChain().traces().get(0).exception().className());
+        assertEquals("Nested Tricky!", fromErr.traceChain().traces().get(0).exception().message());
     }
 
     @Test
