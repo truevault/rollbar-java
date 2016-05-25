@@ -25,7 +25,7 @@ public class RollbarSerializerTest {
                     "\",\"extra\":\"has-extra\"}},\"notifier\":{\"name\":\"rollbar\"}}}";
 
     @Test
-    public void TestBasicSerialize() throws JsonProcessingException {
+    public void testBasicSerialize() throws JsonProcessingException {
         final LinkedHashMap<String, Object> members = new LinkedHashMap<>();
         members.put("extra", "has-extra");
         final Body body = Body.fromString(testMessage, members);
@@ -37,8 +37,8 @@ public class RollbarSerializerTest {
     }
 
     @Test
-    public void TestExceptionSerialize() throws IOException {
-        final Body body = Body.fromThrowable(getError());
+    public void testExceptionSerialize() throws IOException {
+        final Body body = Body.fromThrowable(getThrowable());
         final Data data = new Data.Builder().environment(environment).body(body).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
@@ -59,12 +59,12 @@ public class RollbarSerializerTest {
         assertEquals("com.truevault.rollbar.payload.RollbarSerializerTest.java",
                 secondToLastFrame.get("filename").textValue());
         assertEquals("throwException", lastFrame.get("method").textValue());
-        assertEquals("getError", secondToLastFrame.get("method").textValue());
+        assertEquals("getThrowable", secondToLastFrame.get("method").textValue());
     }
 
     @Test
-    public void TestChainedExceptionSerialize() throws IOException {
-        final Body body = Body.fromThrowable(getChainedError());
+    public void testChainedExceptionSerialize() throws IOException {
+        final Body body = Body.fromThrowable(getChainedThrowable());
         final Data data = new Data.Builder().environment(environment).body(body).build();
         String json = getObjectWriter().writeValueAsString(new Item(accessToken, data));
         ObjectNode parsed = getObjectReader().forType(ObjectNode.class).readValue(json);
@@ -75,7 +75,7 @@ public class RollbarSerializerTest {
     }
 
     @Test
-    public void TestExtensibleSerialize() throws IOException {
+    public void testExtensibleSerialize() throws IOException {
         final Message msg = new Message("Message").put("extra", "value");
         final Body body = new Body(msg);
         final Data data = new Data.Builder().environment(environment).body(body).build();
@@ -87,7 +87,7 @@ public class RollbarSerializerTest {
         assertEquals("value", b);
     }
 
-    public Throwable getError() {
+    public Throwable getThrowable() {
         try {
             throwException();
             return null;
@@ -100,16 +100,16 @@ public class RollbarSerializerTest {
         throw new Exception("Non Chained Exception");
     }
 
-    public Throwable getChainedError() {
+    public Throwable getChainedThrowable() {
         try {
-            throwChainedError();
+            throwChainedException();
             return null;
         } catch (Throwable t) {
             return t;
         }
     }
 
-    public void throwChainedError() throws Exception {
+    public void throwChainedException() throws Exception {
         try {
             throwException();
         } catch (Exception e) {
