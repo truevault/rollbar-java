@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Information about this notifier, or one based off of this
  */
 public class Notifier {
-    public static final String defaultName = "rollbar";
+    public static final String defaultName = "truevault-rollbar";
     public static final String defaultVersion = Notifier.class.getPackage().getImplementationVersion();
 
     private final String name;

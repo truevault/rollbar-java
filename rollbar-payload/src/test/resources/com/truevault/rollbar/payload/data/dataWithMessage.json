@@ -1,0 +1,58 @@
+{
+  "environment": "env",
+  "body": {
+    "message": {
+      "body": "foo",
+      "int": 3,
+      "str": "s"
+    }
+  },
+  "level": "debug",
+  "timestamp": 1464219077,
+  "code_version": "codeVers",
+  "platform": "p",
+  "language": "l",
+  "framework": "f",
+  "context": "c",
+  "request": {
+    "headers": {
+      "X-Foo": "bar"
+    },
+    "user_ip": "127.0.0.1",
+    "method": "method",
+    "POST": {
+      "c": "d"
+    },
+    "GET": {
+      "a": "b"
+    },
+    "params": {
+      "p": "v"
+    },
+    "body": "body",
+    "url": "url",
+    "query_string": "a=b",
+    "req": "extra"
+  },
+  "person": {
+    "id": "id",
+    "username": "user",
+    "email": "foo@bar.com"
+  },
+  "server": {
+    "host": "localhost",
+    "branch": "branch",
+    "root": "root",
+    "code_version": "vers",
+    "server": "extra"
+  },
+  "custom": {
+    "data": "custom"
+  },
+  "fingerprint": "fingerprint",
+  "title": "title",
+  "uuid": "49622cce-72ef-40da-a8ab-68e998d99981",
+  "notifier": {
+    "name": "truevault-rollbar"
+  }
+}

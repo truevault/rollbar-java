@@ -1,0 +1,29 @@
+{
+  "environment": "test",
+  "body": {
+    "trace": {
+      "frames": [
+        {
+          "filename": "com.truevault.rollbar.payload.data.DummyStack.java",
+          "lineno": 20,
+          "method": "getThrowable0"
+        },
+        {
+          "filename": "com.truevault.rollbar.payload.data.DummyStack.java",
+          "lineno": 24,
+          "method": "getThrowable1"
+        },
+        {
+          "filename": "com.truevault.rollbar.payload.data.DummyStack.java",
+          "lineno": 28,
+          "method": "getThrowable2"
+        }
+      ],
+      "exception": {
+        "class": "DummyStack",
+        "message": "dummy",
+        "description": "desc"
+      }
+    }
+  }
+}

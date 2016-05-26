@@ -1,0 +1,38 @@
+{
+  "environment": "test",
+  "body": {
+    "trace": {
+      "frames": [
+        {
+          "filename": "file",
+          "lineno": 1,
+          "colno": 2,
+          "method": "method",
+          "code": "line of code",
+          "context": {
+            "pre": [
+              "pre1",
+              "pre2"
+            ],
+            "post": [
+              "post1",
+              "post2"
+            ]
+          },
+          "args": [
+            "arg1",
+            2
+          ],
+          "kwargs": {
+            "foo": "bar"
+          }
+        }
+      ],
+      "exception": {
+        "class": "klass",
+        "message": "message",
+        "description": "desc"
+      }
+    }
+  }
+}

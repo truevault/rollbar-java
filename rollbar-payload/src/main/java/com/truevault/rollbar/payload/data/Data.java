@@ -117,8 +117,8 @@ public class Data {
      * @return the moment the bug happened, visible in ui as client_timestamp
      */
     @JsonProperty("timestamp")
-    public Instant timestamp() {
-        return timestamp;
+    public Long timestamp() {
+        return timestamp == null ? null : timestamp.getEpochSecond();
     }
 
     /**

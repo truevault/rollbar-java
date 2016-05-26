@@ -22,7 +22,7 @@ public class RollbarSerializerTest {
     private final static String basicExpected =
             "{\"access_token\":\"" + accessToken + "\",\"data\":{\"environment\":\"" + environment +
                     "\",\"body\":{\"message\":{\"body\":\"" + testMessage +
-                    "\",\"extra\":\"has-extra\"}},\"notifier\":{\"name\":\"rollbar\"}}}";
+                    "\",\"extra\":\"has-extra\"}},\"notifier\":{\"name\":\"truevault-rollbar\"}}}";
 
     @Test
     public void testBasicSerialize() throws JsonProcessingException {

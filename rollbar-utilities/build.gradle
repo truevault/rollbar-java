@@ -1,4 +1,3 @@
 dependencies {
     compile "com.fasterxml.jackson.core:jackson-databind:$deps.jackson"
-
 }
