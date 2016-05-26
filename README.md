@@ -1,6 +1,12 @@
 ## Overview
 
-This library allows reporting issues to Rollbar in anything that can use Java. This is a heavily modified fork of the original [Java library from Rollbar](https://github.com/rollbar/rollbar-java). The major changes in this fork are using non-blocking I/O for its HTTP requests so that your app doesn't have to wait, Jackson for its JSON serialization, and a tidier API (though aesthetic things like that are arguable of course).
+This library allows reporting issues to Rollbar in anything that can use Java. This started as a fork of the [Java library from Rollbar](https://github.com/rollbar/rollbar-java), but is now a different beast entirely. Among the changes:
+
+- Non-blocking I/O for its HTTP requests. Your app doesn't have to wait for the Rollbar request to complete. Presumably if things are going wrong, the last thing you want is even more slowdown.
+- Uses Jackson for its JSON serialization rather than hand-rolled JSON for less boilerplate code.
+- More configurable and extensible with (what I claim is) a tidier API.
+- More tests.
+- Uses Java 8 types and features.
 
 ## Setup
 
