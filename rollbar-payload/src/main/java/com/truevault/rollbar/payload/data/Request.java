@@ -69,7 +69,7 @@ public class Request extends Extensible<Request> {
      */
     public Request(String url, String method, Map<String, String> headers, Map<String, String> params,
             Map<String, String> get, String queryString, Map<String, Object> post, String body,
-            InetAddress userIp) {
+            String userIp) {
         this(url, method, headers, params, get, queryString, post, body, userIp, null);
     }
 
@@ -87,7 +87,7 @@ public class Request extends Extensible<Request> {
      */
     public Request(String url, String method, Map<String, String> headers, Map<String, String> params,
             Map<String, String> get, String queryString, Map<String, Object> post, String body,
-            InetAddress userIp, Map<String, Object> members) {
+            String userIp, Map<String, Object> members) {
         super(members);
         putKnown(URL_KEY, url);
         putKnown(METHOD_KEY, method);
@@ -97,7 +97,7 @@ public class Request extends Extensible<Request> {
         putKnown(QUERY_STRING_KEY, queryString);
         putKnown(POST_KEY, post == null ? null : new LinkedHashMap<>(post));
         putKnown(BODY_KEY, body);
-        putKnown(USER_IP_KEY, userIp == null ? null : userIp.getHostAddress());
+        putKnown(USER_IP_KEY, userIp);
     }
 
     /**
@@ -169,12 +169,7 @@ public class Request extends Extensible<Request> {
     /**
      * @return the affected user's IP address
      */
-    public InetAddress userIp() {
-        Object ip = get(USER_IP_KEY);
-        try {
-            return ip == null ? null : InetAddress.getByName((String) get(USER_IP_KEY));
-        } catch (UnknownHostException e) {
-            return null;
-        }
+    public String userIp() {
+        return (String) get(USER_IP_KEY);
     }
 }

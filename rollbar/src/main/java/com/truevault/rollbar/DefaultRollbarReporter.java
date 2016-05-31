@@ -259,6 +259,15 @@ public class DefaultRollbarReporter implements RollbarReporter {
         return sendItem(t, description, new Item(accessToken, data));
     }
 
+    @Override
+    public CompletableFuture<RollbarResponse> log(Data.Builder builder, @Nullable Throwable t,
+            @Nullable String description) {
+        Data data = builder.environment(environment)
+                .timestamp(Instant.now())
+                .build();
+        return sendItem(t, description, new Item(accessToken, data));
+    }
+
     /**
      * Record a throwable or message with extra data at the level specified. At least ene of `error` or `description`
      * must be non-null. If error is null, `description` will be sent as a message. If error is non-null, description

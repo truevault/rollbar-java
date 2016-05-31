@@ -353,4 +353,15 @@ public interface RollbarReporter {
      * @param description the description, if any
      */
     CompletableFuture<RollbarResponse> log(Data data, @Nullable Throwable t, @Nullable String description);
+
+    /**
+     * A slightly less flexible but more convenient version of {@link RollbarReporter#log(Data, Throwable, String)}.
+     * Most cases that call for manually configuring the Data object still don't care about setting the timestamp or
+     * environment, so this method adds those two parts (environment and timestamp) to the provided Builder.
+     *
+     * @param builder     a builder with at least body set
+     * @param t           the throwable responsible, if any
+     * @param description the description, if any
+     */
+    CompletableFuture<RollbarResponse> log(Data.Builder builder, @Nullable Throwable t, @Nullable String description);
 }

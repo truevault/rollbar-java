@@ -18,7 +18,7 @@
     "headers": {
       "X-Foo": "bar"
     },
-    "user_ip": "127.0.0.1",
+    "user_ip": "1.2.3.4",
     "method": "method",
     "POST": {
       "c": "d"

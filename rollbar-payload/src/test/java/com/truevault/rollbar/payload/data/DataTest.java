@@ -49,7 +49,7 @@ public class DataTest {
                 .framework("f")
                 .context("c")
                 .request(new Request("url", "method", headers, params, get, "a=b", post, "body",
-                        InetAddress.getLocalHost(), requestExtra))
+                        "1.2.3.4", requestExtra))
                 .person(new Person("id", "user", "foo@bar.com"))
                 .server(new Server("localhost", "root", "branch", "vers", serverExtra))
                 .custom(dataCustom)
