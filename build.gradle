@@ -34,7 +34,7 @@ subprojects {
     apply plugin: 'com.jfrog.bintray'
 
     group 'com.truevault.rollbar'
-    version '0.6.0'
+    version '0.7.0-SNAPSHOT'
 
     task sourceJar(type: Jar, dependsOn: classes) {
       from sourceSets.main.allJava
