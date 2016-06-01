@@ -21,8 +21,8 @@ repositories {
 }
 
 dependencies {
-  compile('com.truevault.rollbar:rollbar:1.0.0')
-  compile('com.truevault.rollbar:rollbar-http-ahc:1.0.0')
+  compile('com.truevault.rollbar:rollbar:0.6.1')
+  compile('com.truevault.rollbar:rollbar-http-ahc:0.6.1')
 }
 ```
 
@@ -37,12 +37,12 @@ Add the dependency to your pom file:
 <dependency>
   <groupId>com.truevault.rollbar</groupId>
    <artifactId>rollbar</artifactId>
-   <version>1.0.0</version>
+   <version>0.6.1</version>
 </dependency>
 <dependency>
   <groupId>com.truevault.rollbar</groupId>
    <artifactId>rollbar-http-ahc</artifactId>
-   <version>1.0.0</version>
+   <version>0.6.1</version>
 </dependency>
 </dependencies>
 ```
